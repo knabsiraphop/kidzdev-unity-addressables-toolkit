@@ -1,0 +1,12 @@
+{
+  "name": "KidzDev.AddressablesToolkit.Editor",
+  "rootNamespace": "KidzDev.AddressablesToolkit.Editor",
+  "references": [
+    "KidzDev.AddressablesToolkit",
+    "Unity.Addressables",
+    "Unity.Addressables.Editor",
+    "Unity.ResourceManager"
+  ],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": true
+}

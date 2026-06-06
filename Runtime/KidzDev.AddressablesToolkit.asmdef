@@ -1,0 +1,9 @@
+{
+  "name": "KidzDev.AddressablesToolkit",
+  "rootNamespace": "KidzDev.AddressablesToolkit",
+  "references": [
+    "Unity.Addressables",
+    "Unity.ResourceManager"
+  ],
+  "autoReferenced": true
+}
