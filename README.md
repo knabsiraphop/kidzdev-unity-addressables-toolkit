@@ -1,11 +1,22 @@
 # KidzDev Addressables Toolkit
 
-Utilities for working with Unity Addressables — reference-counted loading, prefab pooling, typed asset references, remote-download helpers, and editor/build tooling.
+Utilities for working with Unity Addressables — reference-counted loading, prefab pooling, typed asset references, a resilient remote-update pipeline, sprite/atlas + scene helpers, and editor/build tooling. The design distills the lessons of two shipping Addressables systems (see `ADDRESSABLE_SYSTEM_synthesis.md`).
 
 ## Requirements
 
 - Unity **6000.0** or newer.
 - `com.unity.addressables` — installed automatically as a package dependency.
+- **UniTask** (`com.cysharp.unitask`) — the toolkit's async backbone. All async APIs return
+  `UniTask`/`UniTask<T>`. UniTask is not on Unity's registry, so add the OpenUPM scoped registry
+  to your project's `Packages/manifest.json`:
+
+  ```json
+  {
+    "scopedRegistries": [
+      { "name": "package.openupm.com", "url": "https://package.openupm.com", "scopes": ["com.cysharp"] }
+    ]
+  }
+  ```
 
 ## Installation
 
@@ -35,15 +46,16 @@ Or add the dependency directly to `Packages/manifest.json`:
 using KidzDev.AddressablesToolkit;
 using UnityEngine;
 
-// Identical keys share one handle; the asset is released only when every borrower releases.
+// The cache is keyed by (key, type); identical (key, T) pairs share one handle and the
+// asset is released only when every borrower releases.
 var prefab = await AssetLoader.LoadAsync<GameObject>("demo-prefab");
 var instance = Object.Instantiate(prefab);
 
-// ... later ...
-AssetLoader.Release("demo-prefab");
+// ... later ... (release is generic — release the same T you loaded)
+AssetLoader.Release<GameObject>("demo-prefab");
 
 // Helpers
-bool loaded = AssetLoader.IsLoaded("demo-prefab");
+bool loaded = AssetLoader.IsLoaded<GameObject>("demo-prefab");
 AssetLoader.ReleaseAll();
 ```
 
@@ -82,8 +94,9 @@ public class Spawner : MonoBehaviour
 
     private async void Start()
     {
+        // The handle is caller-owned (not ref-counted) and awaitable directly via UniTask.
         var handle = bodyRef.InstantiateComponentAsync(transform);
-        Rigidbody rb = await handle.Task;
+        Rigidbody rb = await handle;
         rb.AddForce(Vector3.up);
 
         // Release the spawned instance when done.
@@ -112,6 +125,77 @@ if (size > 0)
 bool cleared = await DownloadHelper.ClearCacheAsync("remote-label");
 ```
 
+### RemoteContentUpdater — full startup update pipeline
+
+The resilient flow both reference systems converged on: check for catalog updates → **apply
+them before sizing** → size across labels → confirm with the player → download with aggregate
+progress. Failures come back as a typed `DownloadResult` instead of an exception, and a single
+`CancellationToken` threads through every step.
+
+```csharp
+using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
+using KidzDev.AddressablesToolkit;
+
+// Optionally point Addressables at your versioned CDN first.
+AddressableCdn.Install(baseUrl: "https://cdn.example.com/Addressables", version: Application.version);
+
+var progress = new Progress<DownloadProgress>(p => Debug.Log($"{p.Percent:P0}"));
+
+DownloadResult result = await RemoteContentUpdater.RunAsync(
+    labels: new object[] { "ui", "prefab", "scene" },
+    progress: progress,
+    confirm: bytes => ShowConfirmPopupAsync(bytes), // return UniTask<bool>
+    ct: cancellationToken);
+
+switch (result.Outcome)
+{
+    case DownloadOutcome.NoUpdate:
+    case DownloadOutcome.Success:    GoToGame(); break;
+    case DownloadOutcome.Rejected:   /* user declined */ break;
+    case DownloadOutcome.NoInternet: /* show offline error */ break;
+    default:                         Debug.LogError(result.Message); break;
+}
+
+// On cancel/quit, optionally allow a partial download to resume next launch:
+RemoteContentUpdater.ClearCatalogCacheForResume();
+```
+
+### AssetLocator — existence checks and TryLoad
+
+```csharp
+bool exists = await AssetLocator.ExistsAsync<Sprite>("icon_key");
+
+// Loads only if a location of the right type exists; returns null otherwise (no throw).
+Sprite s = await AssetLocator.TryLoadAsync<Sprite>("icon_key");
+// release with AssetLoader.Release<Sprite>("icon_key");
+```
+
+### SpriteAtlasLoader — sprites packed in a SpriteAtlas
+
+Uses the `"{atlasKey}[{spriteName}]"` addressable-key convention shared by both reference systems.
+
+```csharp
+Sprite icon = await SpriteAtlasLoader.LoadAsync("atl_ui_shared", "icon_coin");
+
+// With a placeholder fallback when the sprite is missing:
+Sprite safe = await SpriteAtlasLoader.LoadOrFallbackAsync(
+    "atl_ui_shared", "icon_unknown",
+    fallbackAtlasKey: "atl_ui_shared", fallbackSpriteName: "icon_missing");
+
+SpriteAtlasLoader.Release("atl_ui_shared", "icon_coin");
+```
+
+### SceneLoader — addressable scenes
+
+```csharp
+await SceneLoader.LoadAsync("MainMenu"); // single
+await SceneLoader.LoadAsync("Hud", UnityEngine.SceneManagement.LoadSceneMode.Additive);
+await SceneLoader.UnloadAsync("Hud");                 // tracked additive unload
+await SceneLoader.UnloadAsync("Hud", heavyUnload: true); // opt in to UnloadUnusedAssets + GC
+```
+
 ## Editor tools
 
 **Assets > Addressables Toolkit** (right-click in the Project window, on a selection):
@@ -124,9 +208,15 @@ bool cleared = await DownloadHelper.ClearCacheAsync("remote-label");
 **Tools > Addressables Toolkit**:
 
 - **Validate Addressables** — scan entries for duplicate addresses and missing assets.
+- **Validate Runtime Editor Usage** — flag any unguarded `using UnityEditor;` in a player
+  (runtime) assembly — the High-severity bug both reference systems shipped.
 - **Build Content** — build Addressables player content.
 - **Clean Content** — clean built player content.
 - **Build Content Update** — build a content update from the previous content state.
+
+A `BundleSizeManifestBuilder` also runs automatically after every content build, writing
+`ServerData/{buildTarget}_BundleSize.json` (bundle name + size) so a remote-update flow can
+estimate the total download before fetching bundles.
 
 ## Build from CLI
 
@@ -140,7 +230,7 @@ Pass `-aaProfile <ProfileName>` to switch the active Addressables profile before
 
 ## Samples
 
-Open **Window > Package Manager**, select *KidzDev Addressables Toolkit*, then import **Demo** from the **Samples** tab. It demonstrates `AssetLoader`, `AddressablePool`, and `DownloadHelper` together.
+Open **Window > Package Manager**, select *KidzDev Addressables Toolkit*, then import **Demo** from the **Samples** tab. It demonstrates `AssetLoader`, `AddressablePool`, `DownloadHelper`, and `RemoteContentUpdater` together.
 
 ## License
 

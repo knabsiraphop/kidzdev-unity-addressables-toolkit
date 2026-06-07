@@ -1,21 +1,22 @@
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace KidzDev.AddressablesToolkit
 {
     /// <summary>
     /// Object pool for Addressable prefabs. The prefab for each key is loaded
-    /// once (via AssetLoader) and reused; instances are recycled instead of being
-    /// destroyed. Inactive instances are parented to a persistent root so they
-    /// survive scene loads.
+    /// once (via <see cref="AssetLoader"/>) and reused; instances are recycled
+    /// instead of being destroyed. Inactive instances are parented to a persistent
+    /// root so they survive scene loads.
     /// </summary>
     public static class AddressablePool
     {
         private sealed class Pool
         {
-            public Task<GameObject> PrefabTask;
+            // Preserved so the cached load can be awaited by many GetAsync/Prewarm calls.
+            public UniTask<GameObject> PrefabTask;
             public readonly Queue<GameObject> Inactive = new();
             public readonly HashSet<GameObject> Active = new();
         }
@@ -39,7 +40,7 @@ namespace KidzDev.AddressablesToolkit
         }
 
         /// <summary>Get an active instance, loading + warming the prefab if needed.</summary>
-        public static async Task<GameObject> GetAsync(object key, Transform parent = null, CancellationToken ct = default)
+        public static async UniTask<GameObject> GetAsync(object key, Transform parent = null, CancellationToken ct = default)
         {
             var pool = EnsurePool(key);
             var prefab = await pool.PrefabTask;
@@ -78,7 +79,7 @@ namespace KidzDev.AddressablesToolkit
         }
 
         /// <summary>Pre-instantiate count inactive instances.</summary>
-        public static async Task Prewarm(object key, int count, CancellationToken ct = default)
+        public static async UniTask Prewarm(object key, int count, CancellationToken ct = default)
         {
             var pool = EnsurePool(key);
             var prefab = await pool.PrefabTask;
@@ -105,7 +106,7 @@ namespace KidzDev.AddressablesToolkit
                 if (go != null) Object.Destroy(go);
 
             _pools.Remove(key);
-            AssetLoader.Release(key);
+            AssetLoader.Release<GameObject>(key);
         }
 
         public static void ClearAll()
@@ -118,7 +119,7 @@ namespace KidzDev.AddressablesToolkit
         {
             if (!_pools.TryGetValue(key, out var pool))
             {
-                pool = new Pool { PrefabTask = AssetLoader.LoadAsync<GameObject>(key) };
+                pool = new Pool { PrefabTask = AssetLoader.LoadAsync<GameObject>(key).Preserve() };
                 _pools[key] = pool;
             }
             return pool;

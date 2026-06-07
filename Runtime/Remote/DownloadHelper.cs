@@ -1,6 +1,6 @@
 using System;
 using System.Threading;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
@@ -19,21 +19,30 @@ namespace KidzDev.AddressablesToolkit
             DownloadedBytes = status.DownloadedBytes;
             TotalBytes = status.TotalBytes;
         }
+
+        internal DownloadProgress(float percent, long downloadedBytes, long totalBytes)
+        {
+            Percent = percent;
+            DownloadedBytes = downloadedBytes;
+            TotalBytes = totalBytes;
+        }
     }
 
     /// <summary>
-    /// Helpers for remote Addressable content: query download size, predownload
-    /// bundles with progress, and clear the download cache.
+    /// Low-level primitives for remote Addressable content: query download size,
+    /// predownload bundles with progress, and clear the download cache. These throw
+    /// on failure; <see cref="RemoteContentUpdater"/> wraps them with typed
+    /// <see cref="DownloadResult"/> classification for a full update flow.
     /// </summary>
     public static class DownloadHelper
     {
         /// <summary>Bytes still needing download for a key/label (0 = already cached).</summary>
-        public static async Task<long> GetDownloadSizeAsync(object key)
+        public static async UniTask<long> GetDownloadSizeAsync(object key, CancellationToken ct = default)
         {
             var handle = Addressables.GetDownloadSizeAsync(key);
             try
             {
-                await handle.Task;
+                await handle.ToUniTask(cancellationToken: ct);
                 return handle.Status == AsyncOperationStatus.Succeeded ? handle.Result : 0L;
             }
             finally
@@ -43,7 +52,7 @@ namespace KidzDev.AddressablesToolkit
         }
 
         /// <summary>Download bundles for a key/label, reporting progress until done.</summary>
-        public static async Task DownloadAsync(object key, IProgress<DownloadProgress> progress = null, CancellationToken ct = default)
+        public static async UniTask DownloadAsync(object key, IProgress<DownloadProgress> progress = null, CancellationToken ct = default)
         {
             var handle = Addressables.DownloadDependenciesAsync(key, false);
             try
@@ -52,14 +61,17 @@ namespace KidzDev.AddressablesToolkit
                 {
                     ct.ThrowIfCancellationRequested();
                     progress?.Report(new DownloadProgress(handle.GetDownloadStatus()));
-                    await Task.Yield();
+                    await UniTask.Yield();
                 }
 
-                await handle.Task;
+                await handle.ToUniTask(cancellationToken: ct);
                 progress?.Report(new DownloadProgress(handle.GetDownloadStatus()));
 
                 if (handle.Status != AsyncOperationStatus.Succeeded)
-                    throw new InvalidOperationException($"Failed to download dependencies for '{key}'.");
+                {
+                    throw handle.OperationException
+                          ?? new InvalidOperationException($"Failed to download dependencies for '{key}'.");
+                }
             }
             finally
             {
@@ -68,12 +80,12 @@ namespace KidzDev.AddressablesToolkit
         }
 
         /// <summary>Clear cached bundles for a key/label. Returns true on success.</summary>
-        public static async Task<bool> ClearCacheAsync(object key)
+        public static async UniTask<bool> ClearCacheAsync(object key, CancellationToken ct = default)
         {
             var handle = Addressables.ClearDependencyCacheAsync(key, false);
             try
             {
-                await handle.Task;
+                await handle.ToUniTask(cancellationToken: ct);
                 return handle.Status == AsyncOperationStatus.Succeeded && handle.Result;
             }
             finally

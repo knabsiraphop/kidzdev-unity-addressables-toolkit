@@ -11,6 +11,13 @@ namespace KidzDev.AddressablesToolkit
     /// Create a concrete subclass to use it in the inspector:
     ///   [Serializable] public class EnemyReference : ComponentReference&lt;Enemy&gt; { }
     /// </summary>
+    /// <remarks>
+    /// Unlike <see cref="AssetLoader"/>, the handles returned here are <b>caller-owned</b>:
+    /// they are not ref-counted by the toolkit. Keep the handle and call
+    /// <see cref="ReleaseInstance"/> (for instantiated objects) or
+    /// <c>Addressables.Release(handle)</c> (for loaded assets) when done. The handle is
+    /// awaitable directly (<c>await handle</c> or <c>await handle.ToUniTask()</c>).
+    /// </remarks>
     [Serializable]
     public class ComponentReference<TComponent> : AssetReferenceGameObject
         where TComponent : Component

@@ -3,7 +3,9 @@
   "rootNamespace": "KidzDev.AddressablesToolkit",
   "references": [
     "Unity.Addressables",
-    "Unity.ResourceManager"
+    "Unity.ResourceManager",
+    "UniTask",
+    "UniTask.Addressables"
   ],
   "autoReferenced": true
 }
