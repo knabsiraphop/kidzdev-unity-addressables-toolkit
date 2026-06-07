@@ -6,25 +6,21 @@ using UnityEngine.Networking;
 namespace KidzDev.AddressablesToolkit
 {
     /// <summary>
-    /// Installs an Addressables <see cref="Addressables.WebRequestOverride"/> that
-    /// rewrites catalog/bundle requests onto a versioned, platform-specific CDN base —
-    /// the URL shape both reference systems used: <c>{baseUrl}/{platform}/{version}/{file}</c>.
+    /// Installs an Addressables <see cref="Addressables.WebRequestOverride"/> that rewrites
+    /// catalog/bundle requests onto a versioned, platform-specific CDN base —
+    /// <c>{baseUrl}/{platformFolder}/{version}/{file}</c> — failing loudly on unknown platforms
+    /// rather than silently mis-targeting.
     /// </summary>
     public static class AddressableCdn
     {
-        /// <summary>
-        /// Begin rewriting Addressables web requests onto
-        /// <c>{baseUrl}/{platformFolder}/{version}</c>. When <paramref name="platformFolder"/>
-        /// is null it is derived from <see cref="GetPlatformFolder"/>, which fails loudly
-        /// on unknown platforms rather than silently mis-targeting (a bug both systems had).
-        /// </summary>
+        /// <summary>Begin rewriting Addressables web requests onto <c>{baseUrl}/{platformFolder}/{version}</c>.</summary>
         public static void Install(string baseUrl, string version, string platformFolder = null)
         {
             if (string.IsNullOrEmpty(baseUrl)) throw new ArgumentException("baseUrl is required.", nameof(baseUrl));
             if (string.IsNullOrEmpty(version)) throw new ArgumentException("version is required.", nameof(version));
 
             platformFolder ??= GetPlatformFolder();
-            var prefix = $"{baseUrl.TrimEnd('/')}/{platformFolder}/{version}";
+            var urlPrefix = $"{baseUrl.TrimEnd('/')}/{platformFolder}/{version}";
 
             Addressables.WebRequestOverride = request =>
             {
@@ -34,13 +30,13 @@ namespace KidzDev.AddressablesToolkit
                     var url = request.url;
                     if (string.IsNullOrEmpty(url)) return;
 
-                    var slash = url.LastIndexOf('/');
-                    var file = slash >= 0 ? url.Substring(slash + 1) : url;
-                    request.url = $"{prefix}/{file}";
+                    var lastSlashIndex = url.LastIndexOf('/');
+                    var fileName = lastSlashIndex >= 0 ? url.Substring(lastSlashIndex + 1) : url;
+                    request.url = $"{urlPrefix}/{fileName}";
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"[AddressablesToolkit] WebRequestOverride failed for '{Safe(request)}': {e}");
+                    Debug.LogError($"[AddressablesToolkit] WebRequestOverride failed for '{SafeUrl(request)}': {e}");
                 }
             };
         }
@@ -49,8 +45,8 @@ namespace KidzDev.AddressablesToolkit
         public static void Uninstall() => Addressables.WebRequestOverride = null;
 
         /// <summary>
-        /// Map the current runtime platform to a CDN folder name. Throws on an
-        /// unrecognized platform rather than silently defaulting to one.
+        /// Map the current runtime platform to a CDN folder name. Throws on an unrecognized platform
+        /// rather than silently defaulting to one.
         /// </summary>
         public static string GetPlatformFolder()
         {
@@ -72,7 +68,7 @@ namespace KidzDev.AddressablesToolkit
             }
         }
 
-        private static string Safe(UnityWebRequest request)
+        private static string SafeUrl(UnityWebRequest request)
         {
             try { return request?.url; } catch { return "<unknown>"; }
         }

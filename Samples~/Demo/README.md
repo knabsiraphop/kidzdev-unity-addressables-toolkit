@@ -11,7 +11,7 @@ A ready-to-run sample. Open the scene, mark two assets addressable, press **Play
 | `demo-sprite.png` | A sprite loaded by key at runtime. |
 | `Resources/AddressablesToolkitSettings.asset` | Toolkit settings (Content Source = **Local**). Lives in `Resources`, so the runtime finds it automatically. |
 | `AddressablesToolkitFullDemo.cs` | Interactive IMGUI tour of the whole toolkit — drives the scene. |
-| `AddressablesToolkitDemo.cs` | Minimal low-level copy-paste reference (`AssetLoader` / `AddressablePool` / `DownloadHelper` / `RemoteContentUpdater`). |
+| `AddressablesToolkitDemo.cs` | Minimal low-level copy-paste reference (`AssetLoader` / `AddressablePool` / `ContentDownloader` / `RemoteContentUpdater`). |
 
 ## Run it (two steps)
 
@@ -41,7 +41,7 @@ releases all of it at once — the toolkit's memory-safety model in action.
 ## Low-level reference — `AddressablesToolkitDemo`
 
 Not attached in the scene. Drop it on an empty GameObject and press Play to see `AssetLoader`,
-`AddressablePool`, `DownloadHelper`, and `RemoteContentUpdater` used directly, with manual release.
+`AddressablePool`, `ContentDownloader`, and `RemoteContentUpdater` used directly, with manual release.
 Local assets report download size `0` — the download / update APIs are for remote (CDN) content.
 
 ## ComponentReference

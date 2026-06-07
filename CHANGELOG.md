@@ -5,6 +5,33 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-06-07
+
+SOLID-oriented refactor: a few dependency-inversion seams, one single-responsibility split, and
+intent-revealing names. A couple of public names changed (no compatibility shims) — update call sites.
+
+### Added
+
+- `IAssetLoader`, `IAssetPool`, and `IAddressablesService` — the toolkit's substitution/testing seams.
+  Each backing facade exposes a `.Default` instance you can inject (`AssetLoader.Default`,
+  `AddressablePool.Default`, `AddressablesService.Default`), and `AssetScope` now accepts an
+  `IAssetLoader` + `IAssetPool` via its constructor.
+- `ReferenceCountedAssetLoader`, `AddressablePrefabPool`, `AddressablesInitializer` — the public default
+  implementations behind those interfaces.
+- `CatalogUpdater` — catalog check/update + cache-reset, split out of `RemoteContentUpdater` (SRP).
+
+### Changed
+
+- `DownloadHelper` renamed to `ContentDownloader` (intent-revealing).
+- `RemoteContentUpdater` now orchestrates only the download flow. `DownloadProgress` and
+  `AddressablesState` moved to their own files; internal variable/field names clarified throughout.
+- Sample demo updated to depend on the new interfaces.
+
+### Removed
+
+- `RemoteContentUpdater.CheckAndUpdateCatalogsAsync` and `ClearCatalogCacheForResume`
+  (moved to `CatalogUpdater`), and the `DownloadHelper` name (use `ContentDownloader`).
+
 ## [1.1.1] - 2026-06-07
 
 Turns the Demo sample into a complete, ready-to-run scene instead of scripts only.

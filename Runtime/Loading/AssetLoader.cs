@@ -1,125 +1,36 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace KidzDev.AddressablesToolkit
 {
     /// <summary>
-    /// Reference-counted async loader for Addressable assets, and the toolkit's
-    /// canonical ownership model — pooling, sprite, and scene helpers all route
-    /// their handles through here. Identical (key, type) pairs share one handle;
-    /// the asset is released only when every borrower has released.
+    /// Static convenience facade over the process-wide default <see cref="IAssetLoader"/>
+    /// (<see cref="ReferenceCountedAssetLoader"/>). Keeps the ergonomic <c>AssetLoader.LoadAsync(…)</c>
+    /// entry point; for testability/DI, depend on <see cref="IAssetLoader"/> and inject
+    /// <see cref="Default"/> (or your own implementation) instead.
     /// </summary>
-    /// <remarks>
-    /// The cache is keyed by <em>both</em> the addressable key and the requested
-    /// type. Loading the same key as two different types is a legitimate operation
-    /// (e.g. a texture loaded as <c>Texture2D</c> and as <c>Sprite</c>) and yields
-    /// two independent handles — never a silent wrong-type cast.
-    /// </remarks>
     public static class AssetLoader
     {
-        private readonly struct CacheKey : IEquatable<CacheKey>
-        {
-            private readonly object _key;
-            private readonly Type _type;
+        private static IAssetLoader _default;
 
-            public CacheKey(object key, Type type)
-            {
-                _key = key;
-                _type = type;
-            }
+        /// <summary>The process-wide default loader. Inject this where an <see cref="IAssetLoader"/> is needed.</summary>
+        public static IAssetLoader Default => _default ??= new ReferenceCountedAssetLoader();
 
-            public bool Equals(CacheKey other) => _type == other._type && Equals(_key, other._key);
-            public override bool Equals(object obj) => obj is CacheKey other && Equals(other);
-            public override int GetHashCode()
-                => unchecked(((_key?.GetHashCode() ?? 0) * 397) ^ (_type?.GetHashCode() ?? 0));
-        }
+        /// <inheritdoc cref="IAssetLoader.LoadAsync{T}"/>
+        public static UniTask<T> LoadAsync<T>(object key, CancellationToken ct = default)
+            where T : UnityEngine.Object => Default.LoadAsync<T>(key, ct);
 
-        private sealed class Entry
-        {
-            public AsyncOperationHandle Handle;
-            public int RefCount;
-        }
+        /// <inheritdoc cref="IAssetLoader.Release{T}"/>
+        public static void Release<T>(object key) where T : UnityEngine.Object => Default.Release<T>(key);
 
-        private static readonly Dictionary<CacheKey, Entry> _cache = new();
+        /// <inheritdoc cref="IAssetLoader.Release(object, Type)"/>
+        public static void Release(object key, Type type) => Default.Release(key, type);
 
-        /// <summary>
-        /// Load (or join an in-flight load of) the asset at <paramref name="key"/>.
-        /// Cancellation is cooperative: a cancelled await releases this borrow and
-        /// throws, but cannot abort an Addressables operation already in flight.
-        /// </summary>
-        public static async UniTask<T> LoadAsync<T>(object key, CancellationToken ct = default)
-            where T : UnityEngine.Object
-        {
-            var cacheKey = new CacheKey(key, typeof(T));
-            if (_cache.TryGetValue(cacheKey, out var entry))
-            {
-                entry.RefCount++;
-            }
-            else
-            {
-                entry = new Entry { Handle = Addressables.LoadAssetAsync<T>(key), RefCount = 1 };
-                _cache[cacheKey] = entry;
-            }
+        /// <inheritdoc cref="IAssetLoader.IsLoaded{T}"/>
+        public static bool IsLoaded<T>(object key) where T : UnityEngine.Object => Default.IsLoaded<T>(key);
 
-            try
-            {
-                await entry.Handle.ToUniTask(cancellationToken: ct);
-            }
-            catch
-            {
-                Release<T>(key);
-                throw;
-            }
-
-            if (entry.Handle.Status != AsyncOperationStatus.Succeeded)
-            {
-                Release<T>(key);
-                throw new InvalidOperationException($"Failed to load addressable '{key}' as {typeof(T).Name}.");
-            }
-
-            return entry.Handle.Result as T;
-        }
-
-        /// <summary>Release one borrow of (key, T). The handle frees at zero refs.</summary>
-        public static void Release<T>(object key) where T : UnityEngine.Object
-            => Release(new CacheKey(key, typeof(T)));
-
-        /// <summary>
-        /// Non-generic release of one borrow of (key, type). Lets callers that only know the
-        /// asset's <see cref="Type"/> at runtime (e.g. <see cref="AssetScope"/>) release without
-        /// reflecting over the generic overload.
-        /// </summary>
-        public static void Release(object key, Type type)
-        {
-            if (type == null) throw new ArgumentNullException(nameof(type));
-            Release(new CacheKey(key, type));
-        }
-
-        private static void Release(CacheKey cacheKey)
-        {
-            if (!_cache.TryGetValue(cacheKey, out var entry))
-                return;
-
-            if (--entry.RefCount > 0)
-                return;
-
-            _cache.Remove(cacheKey);
-            Addressables.Release(entry.Handle);
-        }
-
-        public static bool IsLoaded<T>(object key) where T : UnityEngine.Object
-            => _cache.ContainsKey(new CacheKey(key, typeof(T)));
-
-        /// <summary>Force-release every cached handle regardless of ref count.</summary>
-        public static void ReleaseAll()
-        {
-            foreach (var entry in _cache.Values)
-                Addressables.Release(entry.Handle);
-            _cache.Clear();
-        }
+        /// <inheritdoc cref="IAssetLoader.ReleaseAll"/>
+        public static void ReleaseAll() => Default.ReleaseAll();
     }
 }

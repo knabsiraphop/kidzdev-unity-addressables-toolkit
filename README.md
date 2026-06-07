@@ -25,7 +25,7 @@ Install via git URL, pinned to a release tag.
 **Package Manager** → *Add package from git URL…*
 
 ```
-https://github.com/knabsiraphop/kidzdev-addressables-toolkit.git#v1.1.1
+https://github.com/knabsiraphop/kidzdev-addressables-toolkit.git#v1.2.0
 ```
 
 Or add the dependency directly to `Packages/manifest.json`:
@@ -33,7 +33,7 @@ Or add the dependency directly to `Packages/manifest.json`:
 ```json
 {
   "dependencies": {
-    "com.kidzdev.addressables-toolkit": "https://github.com/knabsiraphop/kidzdev-addressables-toolkit.git#v1.1.1"
+    "com.kidzdev.addressables-toolkit": "https://github.com/knabsiraphop/kidzdev-addressables-toolkit.git#v1.2.0"
   }
 }
 ```
@@ -44,7 +44,17 @@ The toolkit has two layers. The **high-level layer** (`AddressablesToolkitSettin
 `AddressablesService` + `AssetScope`) is the recommended way to wire Addressables into a real
 project: configure one asset, initialize once, then load/instantiate through lifetime-bound
 scopes that release themselves. The **low-level tools** below it (`AssetLoader`, `AddressablePool`,
-`DownloadHelper`, …) remain available when you want direct control.
+`ContentDownloader`, …) remain available when you want direct control.
+
+### Architecture
+
+Most of the toolkit is plain static utilities (`AssetLoader`, `AddressablePool`, `ContentDownloader`,
+`CatalogUpdater`, `RemoteContentUpdater`, `AddressableCdn`, `AssetLocator`, …). Three of them also
+expose an **interface seam** for substitution and unit-testing — `IAssetLoader`, `IAssetPool`, and
+`IAddressablesService` — each reachable via a `.Default` instance on its facade
+(`AssetLoader.Default`, `AddressablePool.Default`, `AddressablesService.Default`). `AssetScope`
+depends on `IAssetLoader` + `IAssetPool` (constructor-injectable), so loading logic can be unit-tested
+with fakes. If you don't care about DI, the static facades keep working as-is.
 
 ### Quick start
 
@@ -223,7 +233,7 @@ public class Spawner : MonoBehaviour
 }
 ```
 
-### DownloadHelper — remote content size, predownload, and cache clear
+### ContentDownloader — remote content size, predownload, and cache clear
 
 ```csharp
 using System;
@@ -231,16 +241,16 @@ using KidzDev.AddressablesToolkit;
 using UnityEngine;
 
 // Bytes still needing download (0 = already cached / local).
-long size = await DownloadHelper.GetDownloadSizeAsync("remote-label");
+long size = await ContentDownloader.GetDownloadSizeAsync("remote-label");
 
 if (size > 0)
 {
     var progress = new Progress<DownloadProgress>(p => Debug.Log($"{p.Percent:P0}"));
-    await DownloadHelper.DownloadAsync("remote-label", progress);
+    await ContentDownloader.DownloadAsync("remote-label", progress);
 }
 
 // Clear cached bundles for a key/label.
-bool cleared = await DownloadHelper.ClearCacheAsync("remote-label");
+bool cleared = await ContentDownloader.ClearCacheAsync("remote-label");
 ```
 
 ### RemoteContentUpdater — full startup update pipeline
@@ -277,7 +287,7 @@ switch (result.Outcome)
 }
 
 // On cancel/quit, optionally allow a partial download to resume next launch:
-RemoteContentUpdater.ClearCatalogCacheForResume();
+CatalogUpdater.ClearCatalogCacheForResume();
 ```
 
 ### AssetLocator — existence checks and TryLoad
@@ -351,7 +361,7 @@ Pass `-aaProfile <ProfileName>` to switch the active Addressables profile before
 Open **Window > Package Manager**, select *KidzDev Addressables Toolkit*, then import **Demo** from the **Samples** tab. It's a ready-to-run scene plus the assets it needs:
 
 - `Demo.unity` — open it, mark `demo-prefab` and `demo-sprite` addressable (right-click → **Addressables Toolkit > Mark Addressable (address = name)**), then press Play. The on-screen panel (`AddressablesToolkitFullDemo`) drives the high-level flow: `AddressablesService.InitializeAsync` from the bundled settings asset, then load/instantiate/pool through a GameObject-bound `AssetScope` that auto-releases on destroy.
-- `AddressablesToolkitDemo` — the low-level tools (`AssetLoader`, `AddressablePool`, `DownloadHelper`, `RemoteContentUpdater`) used directly.
+- `AddressablesToolkitDemo` — the low-level tools (`AssetLoader`, `AddressablePool`, `ContentDownloader`, `RemoteContentUpdater`) used directly.
 
 ## License
 

@@ -29,6 +29,8 @@ namespace KidzDev.AddressablesToolkit.Samples
         [SerializeField] private AssetReference prefabReference;
 
         // --- demo state ------------------------------------------------------
+        // Depend on the IAddressablesService seam (resolved to the process-wide default here).
+        private readonly IAddressablesService _service = AddressablesService.Default;
         private AssetScope _scope;
         private CancellationTokenSource _cts;
 
@@ -76,12 +78,12 @@ namespace KidzDev.AddressablesToolkit.Samples
             Log("Initializing…");
 
             var progress = new Progress<DownloadProgress>(p => _downloadPercent = p.Percent);
-            bool ready = await AddressablesService.InitializeAsync(progress, Confirm, ct);
+            bool ready = await _service.InitializeAsync(progress, Confirm, ct);
 
             _initInFlight = false;
             Log(ready
                 ? "Ready — content can be loaded."
-                : $"Init did not reach Ready: {AddressablesService.LastDownloadResult.Outcome}.");
+                : $"Init did not reach Ready: {_service.LastDownloadResult.Outcome}.");
         }
 
         // Confirm gate: surfaces a Yes/No dialog in OnGUI and completes when the player answers.
@@ -224,11 +226,11 @@ namespace KidzDev.AddressablesToolkit.Samples
         private void DrawInitSection()
         {
             GUILayout.Label("<b>1 · Initialize</b>", RichLabel());
-            GUILayout.Label($"State: {AddressablesService.State}");
+            GUILayout.Label($"State: {_service.State}");
 
             using (new GuiDisabledScope(_initInFlight))
             {
-                if (GUILayout.Button(AddressablesService.IsReady ? "Re-run Initialize" : "Initialize"))
+                if (GUILayout.Button(_service.IsReady ? "Re-run Initialize" : "Initialize"))
                     StartInitialize();
             }
 
@@ -250,7 +252,7 @@ namespace KidzDev.AddressablesToolkit.Samples
             GUILayout.Label("<b>2 · Load / Instantiate / Release</b>", RichLabel());
             GUILayout.Label($"Instances: {_instanceCount}   Pooled: {_pooledCount}");
 
-            using (new GuiDisabledScope(!AddressablesService.IsReady))
+            using (new GuiDisabledScope(!_service.IsReady))
             {
                 if (GUILayout.Button("Instantiate by key (scope)")) InstantiateByKey().Forget();
                 if (GUILayout.Button("Instantiate by AssetReference (scope)")) InstantiateByReference().Forget();
