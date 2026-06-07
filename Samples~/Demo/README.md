@@ -1,49 +1,48 @@
 # Addressables Toolkit — Demo
 
-Three scripts, from a full interactive tour down to minimal copy-paste references.
+A ready-to-run sample. Open the scene, mark two assets addressable, press **Play**.
 
-| Script | What it shows | Style |
-| --- | --- | --- |
-| `AddressablesToolkitFullDemo` | The whole toolkit end to end | Interactive (on-screen buttons) |
-| `AddressablesBootstrapDemo` | High-level flow: `AddressablesService` + `AssetScope` | Auto-runs on Play |
-| `AddressablesToolkitDemo` | Low-level tools used directly | Auto-runs on Play |
+## What's included
 
-Use **one** script per GameObject. Start with the full demo.
+| Asset | Purpose |
+| --- | --- |
+| `Demo.unity` | The demo scene — an orthographic camera, the `AddressablesToolkitFullDemo` driver, and a preview of `demo-prefab`. |
+| `demo-prefab.prefab` | A `SpriteRenderer` prefab (uses `demo-sprite`). Instantiated / pooled at runtime. |
+| `demo-sprite.png` | A sprite loaded by key at runtime. |
+| `Resources/AddressablesToolkitSettings.asset` | Toolkit settings (Content Source = **Local**). Lives in `Resources`, so the runtime finds it automatically. |
+| `AddressablesToolkitFullDemo.cs` | Interactive IMGUI tour of the whole toolkit — drives the scene. |
+| `AddressablesToolkitDemo.cs` | Minimal low-level copy-paste reference (`AssetLoader` / `AddressablePool` / `DownloadHelper` / `RemoteContentUpdater`). |
 
-## Setup (once)
+## Run it (two steps)
 
-1. Create a prefab named `demo-prefab` (e.g. a Cube). Optionally a sprite named `demo-sprite`.
-2. Select it → right-click → **Addressables Toolkit > Mark Addressable (address = name)**.
-3. Create the settings asset: **Tools > Addressables Toolkit > Settings**
-   (lands in `Assets/Resources/`). Leave **Content Source = Local** to try it offline.
+A package sample can't ship Addressables group entries — those live in **your** project's
+`AddressableAssetsData`. So after importing the sample:
 
-## `AddressablesToolkitFullDemo` — interactive
+1. Select **`demo-prefab`** and **`demo-sprite`** in this folder → right-click →
+   **Addressables Toolkit ▸ Mark Addressable (address = name)**.
+   Their addresses become `demo-prefab` / `demo-sprite` — exactly what the scene expects.
+2. Open **`Demo.unity`** and press **Play**.
 
-The recommended starting point. It builds its own UI with IMGUI, so it needs **no scene, canvas,
-or UI prefabs** — just the addressable keys.
+The settings asset is already under a `Resources` folder, so no extra setup is needed for Local content.
 
-1. Add an empty GameObject, attach `AddressablesToolkitFullDemo`.
-2. Set `prefabAddress` / `spriteAddress` to your addresses (optionally assign an `AssetReference`).
-3. Press Play. Use the on-screen panel:
-   - **1 · Initialize** — runs `AddressablesService.InitializeAsync` from your settings, with a live
-     progress bar and a download-confirm dialog. Shows the resolved environment/CDN/version.
-   - **2 · Load / Instantiate / Release** — instantiate (by key *and* by `AssetReference`), spawn
-     pooled, load a sprite (drawn top-right), release one item early, or **Dispose scope** to release
-     everything at once.
+## Using the scene
+
+The on-screen IMGUI panel (`AddressablesToolkitFullDemo`) walks the whole toolkit:
+
+- **1 · Initialize** — runs `AddressablesService.InitializeAsync` from the settings asset, with a
+  live progress bar and a download-confirm dialog. Local content is instant; switch the settings to
+  **Remote** + a CDN to exercise the catalog-update / predownload flow.
+- **2 · Load / Instantiate / Release** — instantiate by key **and** by `AssetReference`, spawn pooled,
+  load a sprite (drawn top-right), release one item early, or **Dispose scope** to release everything.
 
 Every borrow goes through a single `AssetScope`; disposing it (or destroying the demo object)
-releases all of it — the toolkit's memory-safety model in action.
+releases all of it at once — the toolkit's memory-safety model in action.
 
-## `AddressablesBootstrapDemo` — high-level, minimal
+## Low-level reference — `AddressablesToolkitDemo`
 
-The same flow without UI: `await AddressablesService.InitializeAsync(...)`, then load/instantiate
-through `this.GetAssetScope()` (auto-released when the GameObject is destroyed). Watch the Console.
-
-## `AddressablesToolkitDemo` — low-level, minimal
-
-Uses `AssetLoader`, `AddressablePool`, `DownloadHelper`, and `RemoteContentUpdater` directly, with
-manual release. Local assets report download size `0` — `DownloadHelper`/`RemoteContentUpdater` are
-for remote (CDN) content.
+Not attached in the scene. Drop it on an empty GameObject and press Play to see `AssetLoader`,
+`AddressablePool`, `DownloadHelper`, and `RemoteContentUpdater` used directly, with manual release.
+Local assets report download size `0` — the download / update APIs are for remote (CDN) content.
 
 ## ComponentReference
 

@@ -25,7 +25,7 @@ Install via git URL, pinned to a release tag.
 **Package Manager** → *Add package from git URL…*
 
 ```
-https://github.com/knabsiraphop/kidzdev-addressables-toolkit.git#v1.0.0
+https://github.com/knabsiraphop/kidzdev-addressables-toolkit.git#v1.1.1
 ```
 
 Or add the dependency directly to `Packages/manifest.json`:
@@ -33,7 +33,7 @@ Or add the dependency directly to `Packages/manifest.json`:
 ```json
 {
   "dependencies": {
-    "com.kidzdev.addressables-toolkit": "https://github.com/knabsiraphop/kidzdev-addressables-toolkit.git#v1.0.0"
+    "com.kidzdev.addressables-toolkit": "https://github.com/knabsiraphop/kidzdev-addressables-toolkit.git#v1.1.1"
   }
 }
 ```
@@ -348,9 +348,9 @@ Pass `-aaProfile <ProfileName>` to switch the active Addressables profile before
 
 ## Samples
 
-Open **Window > Package Manager**, select *KidzDev Addressables Toolkit*, then import **Demo** from the **Samples** tab. It contains two scripts:
+Open **Window > Package Manager**, select *KidzDev Addressables Toolkit*, then import **Demo** from the **Samples** tab. It's a ready-to-run scene plus the assets it needs:
 
-- `AddressablesBootstrapDemo` — the recommended high-level flow: `AddressablesService.InitializeAsync` driven by the settings asset, then load/instantiate/pool through a GameObject-bound `AssetScope` that auto-releases on destroy.
+- `Demo.unity` — open it, mark `demo-prefab` and `demo-sprite` addressable (right-click → **Addressables Toolkit > Mark Addressable (address = name)**), then press Play. The on-screen panel (`AddressablesToolkitFullDemo`) drives the high-level flow: `AddressablesService.InitializeAsync` from the bundled settings asset, then load/instantiate/pool through a GameObject-bound `AssetScope` that auto-releases on destroy.
 - `AddressablesToolkitDemo` — the low-level tools (`AssetLoader`, `AddressablePool`, `DownloadHelper`, `RemoteContentUpdater`) used directly.
 
 ## License

@@ -5,6 +5,23 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-06-07
+
+Turns the Demo sample into a complete, ready-to-run scene instead of scripts only.
+
+### Added
+
+- Sample: a ready-to-run `Demo.unity` scene (orthographic camera + the `AddressablesToolkitFullDemo`
+  driver + a preview instance of `demo-prefab`), plus the assets it uses — `demo-prefab.prefab`
+  (a `SpriteRenderer`), `demo-sprite.png`, and `Resources/AddressablesToolkitSettings.asset`
+  (Content Source = Local, found automatically via `Resources`). Committed `.meta` files keep the
+  scene's references stable across imports.
+
+### Removed
+
+- Sample: `AddressablesBootstrapDemo` — its high-level flow is already covered interactively by
+  `AddressablesToolkitFullDemo`.
+
 ## [1.1.0] - 2026-06-07
 
 A high-level layer that turns the toolkit's individual utilities into a drop-in
