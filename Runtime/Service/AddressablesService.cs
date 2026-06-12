@@ -17,6 +17,9 @@ namespace KidzDev.AddressablesToolkit
         /// <summary>The process-wide default service. Inject this where an <see cref="IAddressablesService"/> is needed.</summary>
         public static IAddressablesService Default => _default ??= new AddressablesInitializer();
 
+        /// <summary>Drop the default so the next access builds a fresh service (play-mode restarts without domain reload).</summary>
+        internal static void ResetDefault() => _default = null;
+
         /// <inheritdoc cref="IAddressablesService.State"/>
         public static AddressablesState State => Default.State;
 

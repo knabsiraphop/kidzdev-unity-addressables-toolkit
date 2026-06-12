@@ -17,6 +17,9 @@ namespace KidzDev.AddressablesToolkit
         /// <summary>The process-wide default loader. Inject this where an <see cref="IAssetLoader"/> is needed.</summary>
         public static IAssetLoader Default => _default ??= new ReferenceCountedAssetLoader();
 
+        /// <summary>Drop the default so the next access builds a fresh loader (play-mode restarts without domain reload).</summary>
+        internal static void ResetDefault() => _default = null;
+
         /// <inheritdoc cref="IAssetLoader.LoadAsync{T}"/>
         public static UniTask<T> LoadAsync<T>(object key, CancellationToken ct = default)
             where T : UnityEngine.Object => Default.LoadAsync<T>(key, ct);

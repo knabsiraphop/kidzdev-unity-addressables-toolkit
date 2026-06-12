@@ -9,7 +9,11 @@ namespace KidzDev.AddressablesToolkit
     /// Installs an Addressables <see cref="Addressables.WebRequestOverride"/> that rewrites
     /// catalog/bundle requests onto a versioned, platform-specific CDN base —
     /// <c>{baseUrl}/{platformFolder}/{version}/{file}</c> — failing loudly on unknown platforms
-    /// rather than silently mis-targeting.
+    /// rather than silently mis-targeting. Only genuinely remote requests are rewritten:
+    /// local content also flows through <c>UnityWebRequest</c> on some platforms (WebGL serves
+    /// every local bundle over HTTP from StreamingAssets, Android uses <c>jar:file://</c> URLs,
+    /// and local groups can opt into UnityWebRequest), and redirecting those onto the CDN
+    /// would break built-in content.
     /// </summary>
     public static class AddressableCdn
     {
@@ -29,6 +33,8 @@ namespace KidzDev.AddressablesToolkit
                 {
                     var url = request.url;
                     if (string.IsNullOrEmpty(url)) return;
+                    if (!IsRemoteCandidate(url)) return;
+                    if (url.StartsWith(urlPrefix, StringComparison.OrdinalIgnoreCase)) return; // already targeted
 
                     var lastSlashIndex = url.LastIndexOf('/');
                     var fileName = lastSlashIndex >= 0 ? url.Substring(lastSlashIndex + 1) : url;
@@ -39,6 +45,23 @@ namespace KidzDev.AddressablesToolkit
                     Debug.LogError($"[AddressablesToolkit] WebRequestOverride failed for '{SafeUrl(request)}': {e}");
                 }
             };
+        }
+
+        /// <summary>
+        /// True only for URLs that can be CDN fetches. StreamingAssets-hosted content is local
+        /// even when served over HTTP (WebGL), and any non-HTTP scheme (<c>file://</c>,
+        /// <c>jar:file://</c>, bare paths) is a local read — rewriting either onto the CDN
+        /// would hijack built-in content.
+        /// </summary>
+        private static bool IsRemoteCandidate(string url)
+        {
+            var streamingAssets = Application.streamingAssetsPath;
+            if (!string.IsNullOrEmpty(streamingAssets) &&
+                url.StartsWith(streamingAssets, StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            return url.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+                || url.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>Stop rewriting requests.</summary>

@@ -16,6 +16,9 @@ namespace KidzDev.AddressablesToolkit
         /// <summary>The process-wide default pool.</summary>
         public static IAssetPool Default => _default ??= new AddressablePrefabPool(AssetLoader.Default);
 
+        /// <summary>Drop the default so the next access builds a fresh pool (play-mode restarts without domain reload).</summary>
+        internal static void ResetDefault() => _default = null;
+
         /// <inheritdoc cref="IAssetPool.GetAsync"/>
         public static UniTask<GameObject> GetAsync(object key, Transform parent = null, CancellationToken ct = default)
             => Default.GetAsync(key, parent, ct);

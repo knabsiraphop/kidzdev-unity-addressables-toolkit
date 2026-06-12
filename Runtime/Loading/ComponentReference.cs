@@ -22,6 +22,10 @@ namespace KidzDev.AddressablesToolkit
     public class ComponentReference<TComponent> : AssetReferenceGameObject
         where TComponent : Component
     {
+        /// <summary>Create an unassigned reference — lets concrete subclasses compile without
+        /// declaring a constructor (the base types only define the guid constructor).</summary>
+        public ComponentReference() : base(string.Empty) { }
+
         public ComponentReference(string guid) : base(guid) { }
 
         /// <summary>Load the prefab asset and return its TComponent.</summary>

@@ -129,6 +129,13 @@ namespace KidzDev.AddressablesToolkit
         /// <summary>Force a specific settings instance (tests, custom loaders). Pass null to reset.</summary>
         public static void OverrideInstance(AddressablesToolkitSettings settings) => _instance = settings;
 
+        /// <summary>Clear the cached instance and environment override (play-mode restarts without domain reload).</summary>
+        internal static void ResetRuntimeStatics()
+        {
+            _instance = null;
+            EnvironmentOverride = null;
+        }
+
         /// <summary>
         /// Code-set environment override. Wins over the serialized <see cref="activeEnvironment"/>
         /// and the <c>ADDRESSABLES_ENV</c> variable. Set before initialization (e.g. from a build

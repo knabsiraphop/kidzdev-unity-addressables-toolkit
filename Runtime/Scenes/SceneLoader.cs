@@ -31,15 +31,60 @@ namespace KidzDev.AddressablesToolkit
             CancellationToken ct = default)
         {
             var handle = Addressables.LoadSceneAsync(key, mode, activateOnLoad);
-            await handle.ToUniTask(cancellationToken: ct);
+            try
+            {
+                await handle.ToUniTask(cancellationToken: ct);
+            }
+            catch (OperationCanceledException)
+            {
+                // The load continues in the background; unload it once it lands so an
+                // abandoned scene doesn't stay resident untracked.
+                UnloadAbandonedAsync(handle).Forget();
+                throw;
+            }
+            catch
+            {
+                if (handle.IsValid()) Addressables.Release(handle);
+                throw;
+            }
 
             if (handle.Status != AsyncOperationStatus.Succeeded)
+            {
+                if (handle.IsValid()) Addressables.Release(handle);
                 throw handle.OperationException ?? new InvalidOperationException($"Failed to load scene '{key}'.");
+            }
 
             var instance = handle.Result;
-            if (mode == LoadSceneMode.Additive)
+            if (mode == LoadSceneMode.Single)
+            {
+                // A Single load destroyed every other scene — drop the now-dead additive entries.
+                _additive.Clear();
+            }
+            else
+            {
+                if (_additive.ContainsKey(key))
+                    Debug.LogWarning($"[AddressablesToolkit] Scene '{key}' additively loaded again; only the newest instance is tracked for UnloadAsync.");
                 _additive[key] = instance;
+            }
             return instance;
+        }
+
+        private static async UniTaskVoid UnloadAbandonedAsync(AsyncOperationHandle<SceneInstance> handle)
+        {
+            try
+            {
+                await handle.ToUniTask();
+            }
+            catch
+            {
+                if (handle.IsValid()) Addressables.Release(handle);
+                return;
+            }
+
+            if (handle.IsValid() && handle.Status == AsyncOperationStatus.Succeeded)
+                await Addressables.UnloadSceneAsync(handle).ToUniTask();
+            else if (handle.IsValid())
+                Addressables.Release(handle);
         }
 
         /// <summary>
@@ -63,5 +108,8 @@ namespace KidzDev.AddressablesToolkit
         }
 
         public static bool IsAdditiveLoaded(object key) => _additive.ContainsKey(key);
+
+        /// <summary>Drop all additive tracking (play-mode restarts without domain reload).</summary>
+        internal static void ResetTracking() => _additive.Clear();
     }
 }

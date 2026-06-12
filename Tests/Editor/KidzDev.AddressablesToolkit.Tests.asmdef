@@ -1,0 +1,27 @@
+{
+    "name": "KidzDev.AddressablesToolkit.Tests",
+    "rootNamespace": "KidzDev.AddressablesToolkit.Tests",
+    "references": [
+        "KidzDev.AddressablesToolkit",
+        "Unity.Addressables",
+        "Unity.ResourceManager",
+        "UniTask",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

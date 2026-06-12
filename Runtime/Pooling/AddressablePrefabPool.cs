@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace KidzDev.AddressablesToolkit
 {
@@ -15,8 +17,9 @@ namespace KidzDev.AddressablesToolkit
     {
         private sealed class Pool
         {
-            // Preserved so the cached load can be awaited by many GetAsync/Prewarm calls.
-            public UniTask<GameObject> PrefabTask;
+            // Any number of concurrent GetAsync/Prewarm calls can await this one source
+            // (unlike UniTask.Preserve(), which rejects a second awaiter while pending).
+            public readonly UniTaskCompletionSource<GameObject> PrefabSource = new();
             public readonly Queue<GameObject> Inactive = new();
             public readonly HashSet<GameObject> Active = new();
         }
@@ -48,7 +51,7 @@ namespace KidzDev.AddressablesToolkit
         public async UniTask<GameObject> GetAsync(object key, Transform parent = null, CancellationToken ct = default)
         {
             var pool = EnsurePool(key);
-            var prefab = await pool.PrefabTask;
+            var prefab = await pool.PrefabSource.Task;
             ct.ThrowIfCancellationRequested();
 
             GameObject instance = null;
@@ -87,7 +90,7 @@ namespace KidzDev.AddressablesToolkit
         public async UniTask Prewarm(object key, int count, CancellationToken ct = default)
         {
             var pool = EnsurePool(key);
-            var prefab = await pool.PrefabTask;
+            var prefab = await pool.PrefabSource.Task;
             ct.ThrowIfCancellationRequested();
 
             for (int i = 0; i < count; i++)
@@ -125,10 +128,30 @@ namespace KidzDev.AddressablesToolkit
         {
             if (!_poolsByKey.TryGetValue(key, out var pool))
             {
-                pool = new Pool { PrefabTask = _assetLoader.LoadAsync<GameObject>(key).Preserve() };
+                // Register before starting the load: a load that fails synchronously must
+                // find its own entry to evict.
+                pool = new Pool();
                 _poolsByKey[key] = pool;
+                LoadPrefabAsync(key, pool).Forget();
             }
             return pool;
+        }
+
+        // A faulted load must not poison the pool: evict the entry so the next
+        // GetAsync/Prewarm retries instead of rethrowing the cached failure forever
+        // (the loader already dropped its borrow when the load failed).
+        private async UniTaskVoid LoadPrefabAsync(object key, Pool pool)
+        {
+            try
+            {
+                pool.PrefabSource.TrySetResult(await _assetLoader.LoadAsync<GameObject>(key));
+            }
+            catch (Exception e)
+            {
+                if (_poolsByKey.TryGetValue(key, out var current) && ReferenceEquals(current, pool))
+                    _poolsByKey.Remove(key);
+                pool.PrefabSource.TrySetException(e);
+            }
         }
 
         private static GameObject CreateInstance(object key, GameObject prefab)

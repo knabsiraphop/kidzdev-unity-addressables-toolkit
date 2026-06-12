@@ -5,6 +5,45 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-06-12
+
+Production-hardening pass: fixes from a full audit of v1.2.0, locked in by new test assemblies.
+
+### Added
+
+- Tests: `Tests/Editor` (EditMode) and `Tests/Runtime` (PlayMode) assemblies covering `AssetScope`
+  tracking/release, pool recycle/retry/concurrency, settings resolution, and `DownloadResult`
+  classification. Run them by adding the package to `"testables"` in the host `manifest.json`.
+- `ContentDownloader`: multi-key overloads of `GetDownloadSizeAsync` / `DownloadAsync` that run a
+  single union operation, so bundles shared between keys are sized and downloaded once.
+- `ComponentReference<T>`: parameterless constructor, so the documented empty subclass
+  (`[Serializable] public class EnemyRef : ComponentReference<Enemy> { }`) actually compiles —
+  previously it failed with CS7036 because the base types only define the guid constructor.
+
+### Changed
+
+- `RemoteContentUpdater.RunAsync` sizes and downloads across all labels in one union operation.
+  Confirm-dialog totals no longer double-count bundles shared between labels, and the reported
+  progress is the true aggregate instead of per-label stitching.
+
+### Fixed
+
+- `AddressableCdn`: the `WebRequestOverride` no longer rewrites local requests onto the CDN.
+  StreamingAssets-hosted content (every WebGL bundle, Android `jar:file://` URLs, local groups
+  opted into UnityWebRequest) is left untouched; only http(s) URLs outside StreamingAssets are
+  redirected.
+- `AddressablePrefabPool`: a failed prefab load no longer poisons its pool entry — the entry is
+  evicted so the next `GetAsync`/`Prewarm` retries. Concurrent `GetAsync`/`Prewarm` calls for a
+  cold key now share one load instead of throwing `Already continuation registered`
+  (`UniTask.Preserve()` replaced with a `UniTaskCompletionSource`, which supports many awaiters).
+- `SceneLoader`: a `Single` load clears the now-dead additive tracking entries; a failed load
+  releases its handle; a cancelled load is unloaded once it lands instead of staying resident
+  untracked; additively re-loading an already-tracked key logs a warning about the replaced entry.
+- Toolkit statics (`AssetLoader.Default`, `AddressablePool.Default`, `AddressablesService.Default`,
+  `SceneLoader` tracking, the settings instance and `EnvironmentOverride`) now reset at play-session
+  start (`SubsystemRegistration`), so "Enter Play Mode without domain reload" no longer carries a
+  Ready service, dead handles, and destroyed pool roots into the next session.
+
 ## [1.2.0] - 2026-06-07
 
 SOLID-oriented refactor: a few dependency-inversion seams, one single-responsibility split, and
