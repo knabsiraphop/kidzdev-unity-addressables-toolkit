@@ -5,6 +5,17 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] - 2026-06-14
+
+### Changed
+
+- **Breaking:** the runtime and editor namespaces (and their assembly definitions) were renamed from
+  `KidzDev.AddressablesToolkit` / `…Editor` to `KidzDev.Unity.AddressablesToolkit` / `…Editor`.
+  Update `using` directives accordingly (e.g. `using KidzDev.Unity.AddressablesToolkit;`). The package
+  id (`com.kidzdev.unity.addressables-toolkit`) and the git install URL are unchanged.
+- `package.json` now declares an `author` (`KidzDev`), so the Unity Package Manager shows the
+  publisher consistently with the other KidzDev packages.
+
 ## [1.4.0] - 2026-06-13
 
 Expands the Demo sample into a full tour of every public API, and fixes a `ComponentReference<T>`

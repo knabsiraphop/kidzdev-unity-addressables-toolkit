@@ -25,7 +25,7 @@ Install via git URL, pinned to a release tag.
 **Package Manager** → *Add package from git URL…*
 
 ```
-https://github.com/knabsiraphop/kidzdev-unity-addressables-toolkit.git#v1.4.0
+https://github.com/knabsiraphop/kidzdev-unity-addressables-toolkit.git#v1.4.1
 ```
 
 Or add the dependency directly to `Packages/manifest.json`:
@@ -33,7 +33,7 @@ Or add the dependency directly to `Packages/manifest.json`:
 ```json
 {
   "dependencies": {
-    "com.kidzdev.unity.addressables-toolkit": "https://github.com/knabsiraphop/kidzdev-unity-addressables-toolkit.git#v1.4.0"
+    "com.kidzdev.unity.addressables-toolkit": "https://github.com/knabsiraphop/kidzdev-unity-addressables-toolkit.git#v1.4.1"
   }
 }
 ```
