@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 
-namespace KidzDev.AddressablesToolkit
+namespace KidzDev.Unity.AddressablesToolkit
 {
     /// <summary>
     /// Installs an Addressables <see cref="Addressables.WebRequestOverride"/> that rewrites

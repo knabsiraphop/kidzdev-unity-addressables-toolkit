@@ -5,11 +5,11 @@ using UnityEditor.AddressableAssets.Build;
 using UnityEditor.AddressableAssets.Settings;
 using UnityEngine;
 
-namespace KidzDev.AddressablesToolkit.Editor
+namespace KidzDev.Unity.AddressablesToolkit.Editor
 {
     /// <summary>
     /// Addressables content build entry points. Callable from the menu or from CI via:
-    ///   -executeMethod KidzDev.AddressablesToolkit.Editor.AddressablesBuilder.BuildContent
+    ///   -executeMethod KidzDev.Unity.AddressablesToolkit.Editor.AddressablesBuilder.BuildContent
     /// Optional CLI arg: -aaProfile <ProfileName> to switch the active profile first.
     /// </summary>
     public static class AddressablesBuilder

@@ -1,6 +1,6 @@
 {
-  "name": "KidzDev.AddressablesToolkit",
-  "rootNamespace": "KidzDev.AddressablesToolkit",
+  "name": "KidzDev.Unity.AddressablesToolkit",
+  "rootNamespace": "KidzDev.Unity.AddressablesToolkit",
   "references": [
     "Unity.Addressables",
     "Unity.ResourceManager",

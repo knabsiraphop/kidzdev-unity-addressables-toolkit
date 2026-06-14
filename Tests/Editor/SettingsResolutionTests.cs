@@ -5,7 +5,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace KidzDev.AddressablesToolkit.Tests
+namespace KidzDev.Unity.AddressablesToolkit.Tests
 {
     public class SettingsResolutionTests
     {

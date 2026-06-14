@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 
-namespace KidzDev.AddressablesToolkit
+namespace KidzDev.Unity.AddressablesToolkit
 {
     /// <summary>
     /// Static convenience facade over the process-wide default <see cref="IAddressablesService"/>

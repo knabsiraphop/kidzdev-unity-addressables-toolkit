@@ -4,7 +4,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-namespace KidzDev.AddressablesToolkit.Tests
+namespace KidzDev.Unity.AddressablesToolkit.Tests
 {
     /// <summary>A loadable dummy asset for fake-loader tests.</summary>
     internal sealed class TestAsset : ScriptableObject { }

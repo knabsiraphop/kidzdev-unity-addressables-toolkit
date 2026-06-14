@@ -5,7 +5,7 @@ using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace KidzDev.AddressablesToolkit.Tests
+namespace KidzDev.Unity.AddressablesToolkit.Tests
 {
     /// <summary>
     /// EditMode coverage for the pool's load path. Recycle/Prewarm/ClearPool need

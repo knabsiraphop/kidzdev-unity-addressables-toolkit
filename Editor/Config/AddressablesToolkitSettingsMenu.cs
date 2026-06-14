@@ -2,7 +2,7 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-namespace KidzDev.AddressablesToolkit.Editor
+namespace KidzDev.Unity.AddressablesToolkit.Editor
 {
     /// <summary>
     /// Locates the project's <see cref="AddressablesToolkitSettings"/> asset, creating one under

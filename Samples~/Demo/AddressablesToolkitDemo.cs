@@ -2,7 +2,7 @@ using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-namespace KidzDev.AddressablesToolkit.Samples
+namespace KidzDev.Unity.AddressablesToolkit.Samples
 {
     /// <summary>
     /// Minimal runnable demo (loader + pool + download + remote update). Mark a prefab

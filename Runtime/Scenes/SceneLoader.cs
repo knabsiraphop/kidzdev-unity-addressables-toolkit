@@ -8,7 +8,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceProviders;
 using UnityEngine.SceneManagement;
 
-namespace KidzDev.AddressablesToolkit
+namespace KidzDev.Unity.AddressablesToolkit
 {
     /// <summary>
     /// Addressable scene load/unload with additive-scene tracking.

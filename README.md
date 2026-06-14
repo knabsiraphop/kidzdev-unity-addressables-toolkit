@@ -1,4 +1,4 @@
-# KidzDev Addressables Toolkit
+# KidzDev Unity Addressables Toolkit
 
 Utilities for working with Unity Addressables — reference-counted loading, prefab pooling, typed asset references, a resilient remote-update pipeline, sprite/atlas + scene helpers, and editor/build tooling. The design distills the lessons of two shipping Addressables systems (see `ADDRESSABLE_SYSTEM_synthesis.md`).
 
@@ -25,7 +25,7 @@ Install via git URL, pinned to a release tag.
 **Package Manager** → *Add package from git URL…*
 
 ```
-https://github.com/knabsiraphop/kidzdev-addressables-toolkit.git#v1.4.0
+https://github.com/knabsiraphop/kidzdev-unity-addressables-toolkit.git#v1.4.0
 ```
 
 Or add the dependency directly to `Packages/manifest.json`:
@@ -33,7 +33,7 @@ Or add the dependency directly to `Packages/manifest.json`:
 ```json
 {
   "dependencies": {
-    "com.kidzdev.addressables-toolkit": "https://github.com/knabsiraphop/kidzdev-addressables-toolkit.git#v1.4.0"
+    "com.kidzdev.unity.addressables-toolkit": "https://github.com/knabsiraphop/kidzdev-unity-addressables-toolkit.git#v1.4.0"
   }
 }
 ```
@@ -59,7 +59,7 @@ with fakes. If you don't care about DI, the static facades keep working as-is.
 ### Quick start
 
 ```csharp
-using KidzDev.AddressablesToolkit;
+using KidzDev.Unity.AddressablesToolkit;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -109,7 +109,7 @@ and join a single in-flight initialization, so any system can `await` it before 
 
 ```csharp
 using System;
-using KidzDev.AddressablesToolkit;
+using KidzDev.Unity.AddressablesToolkit;
 
 // Drive a loading screen from state transitions.
 AddressablesService.StateChanged += s => Debug.Log($"State → {s}"); // Initializing → … → Ready
@@ -171,7 +171,7 @@ var config = await scope.LoadAsync<TextAsset>("level_config");
 ### AssetLoader — reference-counted async loading
 
 ```csharp
-using KidzDev.AddressablesToolkit;
+using KidzDev.Unity.AddressablesToolkit;
 using UnityEngine;
 
 // The cache is keyed by (key, type); identical (key, T) pairs share one handle and the
@@ -190,7 +190,7 @@ AssetLoader.ReleaseAll();
 ### AddressablePool — prefab pooling with a persistent root
 
 ```csharp
-using KidzDev.AddressablesToolkit;
+using KidzDev.Unity.AddressablesToolkit;
 using UnityEngine;
 
 // Pre-instantiate a few inactive instances.
@@ -210,7 +210,7 @@ AddressablePool.ClearPool("demo-prefab");
 
 ```csharp
 using System;
-using KidzDev.AddressablesToolkit;
+using KidzDev.Unity.AddressablesToolkit;
 using UnityEngine;
 
 // Declare a concrete subclass so it shows up in the inspector.
@@ -237,7 +237,7 @@ public class Spawner : MonoBehaviour
 
 ```csharp
 using System;
-using KidzDev.AddressablesToolkit;
+using KidzDev.Unity.AddressablesToolkit;
 using UnityEngine;
 
 // Bytes still needing download (0 = already cached / local).
@@ -264,7 +264,7 @@ progress. Failures come back as a typed `DownloadResult` instead of an exception
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using KidzDev.AddressablesToolkit;
+using KidzDev.Unity.AddressablesToolkit;
 
 // Optionally point Addressables at your versioned CDN first.
 AddressableCdn.Install(baseUrl: "https://cdn.example.com/Addressables", version: Application.version);
@@ -351,7 +351,7 @@ estimate the total download before fetching bundles.
 The build entry points are callable from CI in batch mode:
 
 ```
-Unity -batchmode -quit -projectPath <path> -executeMethod KidzDev.AddressablesToolkit.Editor.AddressablesBuilder.BuildContent
+Unity -batchmode -quit -projectPath <path> -executeMethod KidzDev.Unity.AddressablesToolkit.Editor.AddressablesBuilder.BuildContent
 ```
 
 Pass `-aaProfile <ProfileName>` to switch the active Addressables profile before building. A failed build calls `EditorApplication.Exit(1)` so CI detects the failure.

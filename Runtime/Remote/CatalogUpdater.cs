@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
-namespace KidzDev.AddressablesToolkit
+namespace KidzDev.Unity.AddressablesToolkit
 {
     /// <summary>
     /// Addressables catalog maintenance — the single responsibility split out of the download

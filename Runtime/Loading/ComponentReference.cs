@@ -4,7 +4,7 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using Object = UnityEngine.Object;
 
-namespace KidzDev.AddressablesToolkit
+namespace KidzDev.Unity.AddressablesToolkit
 {
     /// <summary>
     /// A serializable AssetReference restricted to prefabs that contain a TComponent.

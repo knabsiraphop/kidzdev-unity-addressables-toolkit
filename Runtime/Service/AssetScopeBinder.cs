@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace KidzDev.AddressablesToolkit
+namespace KidzDev.Unity.AddressablesToolkit
 {
     /// <summary>
     /// Holds an <see cref="AssetScope"/> and disposes it when the GameObject is destroyed.

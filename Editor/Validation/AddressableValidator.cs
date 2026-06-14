@@ -9,7 +9,7 @@ using UnityEngine;
 using CompilationAssembly = UnityEditor.Compilation.Assembly;
 using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
-namespace KidzDev.AddressablesToolkit.Editor
+namespace KidzDev.Unity.AddressablesToolkit.Editor
 {
     /// <summary>Scans Addressable entries for duplicate addresses and missing assets.</summary>
     public static class AddressableValidator

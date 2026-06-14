@@ -1,6 +1,6 @@
 using System;
 
-namespace KidzDev.AddressablesToolkit
+namespace KidzDev.Unity.AddressablesToolkit
 {
     /// <summary>Outcome of a remote-content update run.</summary>
     public enum DownloadOutcome

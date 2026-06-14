@@ -5,7 +5,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
-namespace KidzDev.AddressablesToolkit
+namespace KidzDev.Unity.AddressablesToolkit
 {
     /// <summary>
     /// The default <see cref="IAssetLoader"/>: a reference-counted loader whose cache is keyed by

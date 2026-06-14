@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEditor.AddressableAssets.Build;
 using UnityEngine;
 
-namespace KidzDev.AddressablesToolkit.Editor
+namespace KidzDev.Unity.AddressablesToolkit.Editor
 {
     /// <summary>
     /// On every Addressables content build, writes a bundle-size manifest to

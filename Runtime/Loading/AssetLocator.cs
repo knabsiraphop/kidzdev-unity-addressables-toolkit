@@ -3,7 +3,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
-namespace KidzDev.AddressablesToolkit
+namespace KidzDev.Unity.AddressablesToolkit
 {
     /// <summary>
     /// Existence checks for Addressable keys (backed by <c>LoadResourceLocationsAsync</c>), plus a

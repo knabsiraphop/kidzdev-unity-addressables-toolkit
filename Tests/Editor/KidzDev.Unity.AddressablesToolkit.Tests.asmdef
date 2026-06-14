@@ -1,8 +1,8 @@
 {
-    "name": "KidzDev.AddressablesToolkit.Tests",
-    "rootNamespace": "KidzDev.AddressablesToolkit.Tests",
+    "name": "KidzDev.Unity.AddressablesToolkit.Tests",
+    "rootNamespace": "KidzDev.Unity.AddressablesToolkit.Tests",
     "references": [
-        "KidzDev.AddressablesToolkit",
+        "KidzDev.Unity.AddressablesToolkit",
         "Unity.Addressables",
         "Unity.ResourceManager",
         "UniTask",

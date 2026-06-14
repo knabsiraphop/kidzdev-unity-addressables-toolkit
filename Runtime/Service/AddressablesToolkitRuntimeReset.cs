@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace KidzDev.AddressablesToolkit
+namespace KidzDev.Unity.AddressablesToolkit
 {
     /// <summary>
     /// Clears the toolkit's static state at the very start of every play session. With

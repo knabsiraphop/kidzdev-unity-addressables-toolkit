@@ -1,6 +1,6 @@
 using UnityEngine.ResourceManagement.AsyncOperations;
 
-namespace KidzDev.AddressablesToolkit
+namespace KidzDev.Unity.AddressablesToolkit
 {
     /// <summary>Progress snapshot for a remote-content download.</summary>
     public readonly struct DownloadProgress

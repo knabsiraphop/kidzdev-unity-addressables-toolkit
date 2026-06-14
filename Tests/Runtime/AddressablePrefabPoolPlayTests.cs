@@ -6,7 +6,7 @@ using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace KidzDev.AddressablesToolkit.Tests.Play
+namespace KidzDev.Unity.AddressablesToolkit.Tests.Play
 {
     /// <summary>Recording loader that serves a fixed prefab.</summary>
     internal sealed class FakeAssetLoader : IAssetLoader

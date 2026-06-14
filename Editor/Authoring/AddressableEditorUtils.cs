@@ -4,7 +4,7 @@ using UnityEditor.AddressableAssets;
 using UnityEditor.AddressableAssets.Settings;
 using UnityEngine;
 
-namespace KidzDev.AddressablesToolkit.Editor
+namespace KidzDev.Unity.AddressablesToolkit.Editor
 {
     /// <summary>Project-window menu items for quickly managing Addressable entries.</summary>
     public static class AddressableEditorUtils

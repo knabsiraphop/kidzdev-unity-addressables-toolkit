@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace KidzDev.AddressablesToolkit
+namespace KidzDev.Unity.AddressablesToolkit
 {
     /// <summary>Marks a pooled instance and records the key it was created from.</summary>
     [DisallowMultipleComponent]

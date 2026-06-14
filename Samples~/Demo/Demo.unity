@@ -332,7 +332,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1d6a206f20b61b548a6bf25342ecf22e, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::KidzDev.AddressablesToolkit.Samples.AddressablesToolkitFullDemo
+  m_EditorClassIdentifier: Assembly-CSharp::KidzDev.Unity.AddressablesToolkit.Samples.AddressablesToolkitFullDemo
   prefabAddress: demo-prefab
   spriteAddress: demo-sprite
   sceneAddress: demo-scene

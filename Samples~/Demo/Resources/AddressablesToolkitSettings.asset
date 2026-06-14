@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5499a946094a46c4aaf41b217c5938a4, type: 3}
   m_Name: AddressablesToolkitSettings
-  m_EditorClassIdentifier: KidzDev.AddressablesToolkit::KidzDev.AddressablesToolkit.AddressablesToolkitSettings
+  m_EditorClassIdentifier: KidzDev.Unity.AddressablesToolkit::KidzDev.Unity.AddressablesToolkit.AddressablesToolkitSettings
   contentSource: 0
   overrideRemoteUrl: 0
   environments:

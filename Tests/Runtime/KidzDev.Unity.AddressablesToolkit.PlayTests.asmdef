@@ -1,8 +1,8 @@
 {
-    "name": "KidzDev.AddressablesToolkit.PlayTests",
-    "rootNamespace": "KidzDev.AddressablesToolkit.Tests.Play",
+    "name": "KidzDev.Unity.AddressablesToolkit.PlayTests",
+    "rootNamespace": "KidzDev.Unity.AddressablesToolkit.Tests.Play",
     "references": [
-        "KidzDev.AddressablesToolkit",
+        "KidzDev.Unity.AddressablesToolkit",
         "UniTask",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"

@@ -8,7 +8,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceProviders;
 using UnityEngine.SceneManagement;
 
-namespace KidzDev.AddressablesToolkit.Samples
+namespace KidzDev.Unity.AddressablesToolkit.Samples
 {
     /// <summary>
     /// Exhaustive, interactive tour of the <b>entire</b> toolkit. Drop this on an empty GameObject and

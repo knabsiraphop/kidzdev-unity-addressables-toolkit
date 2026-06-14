@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
-namespace KidzDev.AddressablesToolkit.Tests
+namespace KidzDev.Unity.AddressablesToolkit.Tests
 {
     public class DownloadResultTests
     {
