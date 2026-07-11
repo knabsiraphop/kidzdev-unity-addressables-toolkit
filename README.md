@@ -363,6 +363,10 @@ Open **Window > Package Manager**, select *KidzDev Addressables Toolkit*, then i
 - `Demo.unity` — open it, mark `demo-prefab` and `demo-sprite` addressable (right-click → **Addressables Toolkit > Mark Addressable (address = name)**), then press Play. The on-screen panel (`AddressablesToolkitFullDemo`) drives the high-level flow: `AddressablesService.InitializeAsync` from the bundled settings asset, then load/instantiate/pool through a GameObject-bound `AssetScope` that auto-releases on destroy.
 - `AddressablesToolkitDemo` — the low-level tools (`AssetLoader`, `AddressablePool`, `ContentDownloader`, `RemoteContentUpdater`) used directly.
 
+## Authorship
+
+Built with [Claude Code](https://claude.com/claude-code), Anthropic's AI coding agent: the design, direction, and review are human ([@knabsiraphop](https://github.com/knabsiraphop)); most of the implementation code was written by Claude under that direction. All code is original — nothing copied from or bundled with third-party sources.
+
 ## License
 
 MIT — see [LICENSE.md](LICENSE.md).
