@@ -5,6 +5,46 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-07-25
+
+Adds opt-in per-label progress reporting to the remote-download flow, for consumers who want a
+per-label breakdown (and download rate) instead of a single aggregate bar.
+
+### Added
+
+- `RemoteContentUpdater.RunAsync` gains a `perLabelProgress: true` parameter: instead of one union
+  download operation, labels download sequentially so `DownloadProgress.Labels` / `.CurrentLabel`
+  are populated for a per-label progress UI. The aggregate byte count stays deduped — a bundle
+  shared between labels only ever counts once, credited to whichever label downloads it first.
+- `LabelDownloadProgress` — a per-label progress snapshot struct (`Label`, `State`
+  `Pending`/`Downloading`/`Complete`, `DownloadedBytes`/`TotalBytes`/`Percent`, `BytesPerSecond`).
+- `DownloadProgress` gains `BytesPerSecond`, `Labels`, and `CurrentLabel`, populated only when
+  `perLabelProgress: true` (empty/`null` otherwise, so the existing aggregate-only path is
+  unaffected).
+- `AddressablesToolkitSettings.downloadProgressMode` (`Union` / `PerLabel`) — lets the
+  auto-initialize predownload step opt into per-label progress without touching call sites.
+- Internal `DownloadRateTracker` — an EMA-smoothed bytes/sec estimator sampled at a throttled
+  interval, backing the new `BytesPerSecond` fields.
+- `BundleSizeManifestBuilder`'s post-build summary now logs the 3 largest bundles by size.
+- Demo sample: new **8b · Per-label progress** section (aggregate bar, current-label bar, and a
+  per-label status list) plus a settings toggle to flip `downloadProgressMode` at runtime.
+- README: `## Authorship` section disclosing the package was built with Claude Code under human
+  direction (carried over from an unreleased commit since v1.4.1).
+
+### Changed
+
+- **Breaking (tooling-facing):** `BundleSizeManifestBuilder`'s post-build report file is renamed
+  from `ServerData/{buildTarget}_BundleSize.json` to `ServerData/{buildTarget}_BuildReport.json`.
+  Anything (CI script, dashboard) that reads the old filename directly needs updating; the JSON
+  shape itself (bundle name + size, plus a total) is unchanged. Not consumed by the toolkit's own
+  runtime download flow, which sizes content on-device via `Addressables.GetDownloadSizeAsync`
+  regardless of this file.
+- Demo sample: `Demo.unity` renamed to `FullDemo.unity` to match the `AddressablesToolkitFullDemo`
+  driver script; `Samples~/Demo/README.md` updated accordingly and now documents a caveat that the
+  **Service**, **Remote**, and **Per-label progress** sections were only exercised against a
+  **Local** content source, not a real production CDN — verify end-to-end against your own CDN
+  before relying on the remote flow.
+
 ## [1.4.1] - 2026-06-14
 
 ### Changed
