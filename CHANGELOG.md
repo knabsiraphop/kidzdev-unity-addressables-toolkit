@@ -5,6 +5,16 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.1] - 2026-07-25
+
+### Fixed
+
+- `RemoteContentUpdater.RunAsync` parameter order restored to
+  `labels, progress, confirm, ct, perLabelProgress` (it was briefly
+  `labels, progress, confirm, perLabelProgress, ct` in v1.5.0), fixing the source-compatibility
+  break documented in the v1.5.0 entry below. Consumers calling `RunAsync` positionally with the
+  pre-1.5.0 four-arg signature (`labels, progress, confirm, ct`) work again unchanged.
+
 ## [1.5.0] - 2026-07-25
 
 Adds opt-in per-label progress reporting to the remote-download flow, for consumers who want a
