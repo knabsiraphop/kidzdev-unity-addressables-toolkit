@@ -33,6 +33,12 @@ per-label breakdown (and download rate) instead of a single aggregate bar.
 
 ### Changed
 
+- **Breaking (unintentional):** `RemoteContentUpdater.RunAsync` inserted the new
+  `perLabelProgress` parameter *before* the pre-existing `ct` parameter, breaking source
+  compatibility for any consumer calling it positionally with the pre-1.5.0 four-arg signature
+  (`labels, progress, confirm, ct`) — `CancellationToken` no longer binds to `ct` in that slot
+  and the call fails to compile. Fixed in v1.5.1, which restores the pre-1.5.0 positional
+  parameter order. If you're pinned to v1.5.0, upgrade to v1.5.1.
 - **Breaking (tooling-facing):** `BundleSizeManifestBuilder`'s post-build report file is renamed
   from `ServerData/{buildTarget}_BundleSize.json` to `ServerData/{buildTarget}_BuildReport.json`.
   Anything (CI script, dashboard) that reads the old filename directly needs updating; the JSON

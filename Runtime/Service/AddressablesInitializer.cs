@@ -119,7 +119,7 @@ namespace KidzDev.Unity.AddressablesToolkit
                     {
                         SetState(AddressablesState.DownloadingContent);
                         var perLabelProgress = settings.downloadProgressMode == DownloadProgressMode.PerLabel;
-                        var downloadResult = await RemoteContentUpdater.RunAsync(preloadKeys, progress, confirm, perLabelProgress, ct);
+                        var downloadResult = await RemoteContentUpdater.RunAsync(preloadKeys, progress, confirm, ct, perLabelProgress);
                         LastDownloadResult = downloadResult;
                         Log(settings, $"Preload: {downloadResult.Outcome} ({downloadResult.Bytes} bytes).");
 

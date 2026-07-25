@@ -41,8 +41,8 @@ namespace KidzDev.Unity.AddressablesToolkit
             IEnumerable<object> labels,
             IProgress<DownloadProgress> progress = null,
             ConfirmDownload confirm = null,
-            bool perLabelProgress = false,
-            CancellationToken ct = default)
+            CancellationToken ct = default,
+            bool perLabelProgress = false)
         {
             if (labels == null) throw new ArgumentNullException(nameof(labels));
 
