@@ -69,6 +69,7 @@ namespace KidzDev.Unity.AddressablesToolkit.Samples
         private CancellationTokenSource _cts;
 
         private float _downloadPercent;
+        private DownloadProgress _labelRunProgress; // last snapshot from RunFullUpdatePerLabel
         private bool _initInFlight;
         private bool _busy; // guards the ad-hoc one-shot operations from re-entry
 
@@ -574,8 +575,18 @@ namespace KidzDev.Unity.AddressablesToolkit.Samples
         private UniTaskVoid RunFullUpdate() => RunOneShot(async () =>
         {
             var progress = new Progress<DownloadProgress>(p => _downloadPercent = p.Percent);
-            DownloadResult result = await RemoteContentUpdater.RunAsync(RemoteKeys(), progress, Confirm, _cts.Token);
-            Log($"RemoteContentUpdater.RunAsync → {result.Outcome} ({result.Bytes} bytes). IsSuccess = {result.IsSuccess}.");
+            DownloadResult result = await RemoteContentUpdater.RunAsync(RemoteKeys(), progress, Confirm, ct: _cts.Token);
+            Log($"RemoteContentUpdater.RunAsync (union) → {result.Outcome} ({result.Bytes} bytes). IsSuccess = {result.IsSuccess}.");
+        });
+
+        // Same flow, perLabelProgress: true — downloads labels sequentially so DownloadProgress.Labels/
+        // CurrentLabel are populated (aggregate byte count still deduped via Addressables' bundle cache).
+        private UniTaskVoid RunFullUpdatePerLabel() => RunOneShot(async () =>
+        {
+            _labelRunProgress = default;
+            var progress = new Progress<DownloadProgress>(p => _labelRunProgress = p);
+            DownloadResult result = await RemoteContentUpdater.RunAsync(RemoteKeys(), progress, Confirm, perLabelProgress: true, ct: _cts.Token);
+            Log($"RemoteContentUpdater.RunAsync (per-label) → {result.Outcome} ({result.Bytes} bytes). IsSuccess = {result.IsSuccess}.");
         });
 
         private void CdnInstall()
@@ -735,6 +746,7 @@ namespace KidzDev.Unity.AddressablesToolkit.Samples
             GUILayout.Label($"Version: {s.ResolveVersion()}");
             GUILayout.Label($"Platform folder: {s.ResolvePlatformFolder() ?? PlatformFolderSafe()}");
             GUILayout.Label($"Preload labels ({s.GetPreloadKeys().Count}): {string.Join(", ", s.GetPreloadKeys())}");
+            GUILayout.Label($"Download progress mode: {s.downloadProgressMode}");
         }
 
         private void DrawSettingsOverrides()
@@ -748,6 +760,20 @@ namespace KidzDev.Unity.AddressablesToolkit.Samples
             if (GUILayout.Button("Apply EnvironmentOverride")) ApplyEnvOverride();
             if (GUILayout.Button("Re-assert OverrideInstance")) ReassertSettingsInstance();
             GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button($"Toggle download progress mode (now: {AddressablesToolkitSettings.Instance.downloadProgressMode})"))
+                ToggleDownloadProgressMode();
+            GUILayout.EndHorizontal();
+        }
+
+        private void ToggleDownloadProgressMode()
+        {
+            var s = AddressablesToolkitSettings.Instance;
+            s.downloadProgressMode = s.downloadProgressMode == DownloadProgressMode.Union
+                ? DownloadProgressMode.PerLabel
+                : DownloadProgressMode.Union;
+            Log($"AddressablesToolkitSettings.downloadProgressMode = {s.downloadProgressMode} " +
+                "— affects auto/explicit Initialize's predownload, not the manual RunAsync buttons below.");
         }
 
         private void DrawServiceSection()
@@ -900,13 +926,55 @@ namespace KidzDev.Unity.AddressablesToolkit.Samples
                 if (GUILayout.Button("Clear cache")) ClearCache().Forget();
                 if (GUILayout.Button("Catalog check")) CatalogCheck().Forget();
                 GUILayout.EndHorizontal();
-                if (GUILayout.Button("RemoteContentUpdater.RunAsync (full flow)")) RunFullUpdate().Forget();
+                GUILayout.BeginHorizontal();
+                if (GUILayout.Button("RunAsync (union)")) RunFullUpdate().Forget();
+                if (GUILayout.Button("RunAsync (per-label)")) RunFullUpdatePerLabel().Forget();
+                GUILayout.EndHorizontal();
             }
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("Catalog clear-for-resume")) CatalogClearForResume();
             if (GUILayout.Button("CDN install")) CdnInstall();
             if (GUILayout.Button("CDN uninstall")) CdnUninstall();
             GUILayout.EndHorizontal();
+
+            DrawLabelProgressPanel();
+        }
+
+        // Two progress views from ONE perLabelProgress:true run: an aggregate bar (deduped total
+        // across every label) and a current-label bar (resets to 0 as RemoteContentUpdater moves
+        // from one label to the next), plus a status line per label.
+        private void DrawLabelProgressPanel()
+        {
+            Header("8b · Per-label progress (RunAsync perLabelProgress: true)");
+            var p = _labelRunProgress;
+
+            DrawNamedBar(p.Percent,
+                $"Aggregate  {FormatBytes(p.DownloadedBytes)}/{FormatBytes(p.TotalBytes)}  ·  {FormatRate(p.BytesPerSecond)}");
+
+            if (p.CurrentLabel.HasValue)
+            {
+                var cur = p.CurrentLabel.Value;
+                DrawNamedBar(cur.Percent,
+                    $"Current: {cur.Label}  {FormatBytes(cur.DownloadedBytes)}/{FormatBytes(cur.TotalBytes)}  ·  {FormatRate(cur.BytesPerSecond)}");
+            }
+            else
+            {
+                GUILayout.Label("   Current label: (idle)");
+            }
+
+            if (p.Labels != null)
+            {
+                foreach (var l in p.Labels)
+                {
+                    var prev = GUI.contentColor;
+                    GUI.contentColor = l.State == LabelDownloadState.Complete ? new Color(0.45f, 0.9f, 0.5f)
+                        : l.State == LabelDownloadState.Downloading ? new Color(1f, 0.85f, 0.35f)
+                        : new Color(0.6f, 0.6f, 0.65f);
+                    string glyph = l.State == LabelDownloadState.Downloading ? "●" : "○";
+                    GUILayout.Label($"   {glyph} {l.Label} [{l.State}]  {l.Percent:P0}  {FormatBytes(l.DownloadedBytes)}/{FormatBytes(l.TotalBytes)}");
+                    GUI.contentColor = prev;
+                }
+            }
         }
 
         // cached IMGUI styles (built lazily inside OnGUI when the skin is available)
@@ -981,16 +1049,27 @@ namespace KidzDev.Unity.AddressablesToolkit.Samples
             GUI.contentColor = prev;
         }
 
-        private void DrawProgressBar()
+        private void DrawProgressBar() => DrawNamedBar(_downloadPercent, $"download {_downloadPercent:P0}");
+
+        private void DrawNamedBar(float percent, string label)
         {
             var bar = GUILayoutUtility.GetRect(100, 22, GUILayout.ExpandWidth(true));
             GUI.Box(bar, GUIContent.none);
-            var fill = new Rect(bar.x, bar.y, bar.width * Mathf.Clamp01(_downloadPercent), bar.height);
+            var fill = new Rect(bar.x, bar.y, bar.width * Mathf.Clamp01(percent), bar.height);
             GUI.color = new Color(0.3f, 0.7f, 1f);
             GUI.Box(fill, GUIContent.none);
             GUI.color = Color.white;
-            GUI.Label(bar, $"  download {_downloadPercent:P0}");
+            GUI.Label(bar, $"  {label}");
         }
+
+        private static string FormatBytes(long bytes)
+        {
+            if (bytes >= 1024 * 1024) return $"{bytes / (1024f * 1024f):0.##} MB";
+            if (bytes >= 1024) return $"{bytes / 1024f:0.##} KB";
+            return $"{bytes} B";
+        }
+
+        private static string FormatRate(float bytesPerSecond) => $"{FormatBytes((long)bytesPerSecond)}/s";
 
         private void DrawSpritePreview(float panelWidth)
         {

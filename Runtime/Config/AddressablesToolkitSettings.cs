@@ -15,6 +15,17 @@ namespace KidzDev.Unity.AddressablesToolkit
         Remote
     }
 
+    /// <summary>How the predownload flow reports progress across preload labels.</summary>
+    public enum DownloadProgressMode
+    {
+        /// <summary>One union operation across every label; progress dedups shared bundles.</summary>
+        Union,
+
+        /// <summary>Labels download sequentially, populating <see cref="DownloadProgress.Labels"/>
+        /// / <see cref="DownloadProgress.CurrentLabel"/> for a per-label progress UI.</summary>
+        PerLabel
+    }
+
     /// <summary>
     /// One named CDN target (e.g. dev / staging / production). The active environment is
     /// chosen by <see cref="AddressablesToolkitSettings.ResolveEnvironmentName"/>, so the
@@ -70,6 +81,7 @@ namespace KidzDev.Unity.AddressablesToolkit
                  "property or the ADDRESSABLES_ENV environment variable (handy for CI/editor).")]
         public string activeEnvironment = "production";
 
+        [Header("Content Version")]
         [Tooltip("Version segment appended to the CDN URL. Empty = Application.version.")]
         public string contentVersion = "";
 
@@ -81,6 +93,16 @@ namespace KidzDev.Unity.AddressablesToolkit
                  "Remote only; ignored for Local content.")]
         public List<string> preloadLabels = new();
 
+        [Tooltip("Remote only. Whether to run the predownload step above (preloadLabels) during " +
+                 "initialization. Off = labels above are never fetched here (load them on demand instead).")]
+        public bool predownloadPreloadContent = true;
+
+        [Tooltip("Remote only. Only applies when predownloadPreloadContent is on. Union = one " +
+                 "dedup'd operation across every preload label. PerLabel = labels download " +
+                 "sequentially, populating DownloadProgress.Labels / CurrentLabel for a per-label " +
+                 "progress UI.")]
+        public DownloadProgressMode downloadProgressMode = DownloadProgressMode.Union;
+
         [Header("Initialization Flow")]
         [Tooltip("Run AddressablesService.InitializeAsync automatically at launch (BeforeSceneLoad). " +
                  "Best for Local/dev; for a remote flow with a download UI, call InitializeAsync yourself " +
@@ -89,9 +111,6 @@ namespace KidzDev.Unity.AddressablesToolkit
 
         [Tooltip("Remote only. Check for and apply catalog updates during initialization.")]
         public bool checkCatalogUpdates = true;
-
-        [Tooltip("Remote only. Predownload the preload labels during initialization.")]
-        public bool predownloadPreloadContent = true;
 
         [Header("Diagnostics")]
         [Tooltip("Log each initialization step and state transition.")]

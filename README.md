@@ -93,9 +93,12 @@ Settings** (it lands in `Assets/Resources/` so it loads automatically at runtime
   `AddressablesToolkitSettings.EnvironmentOverride` or the `ADDRESSABLES_ENV` variable (CI/editor).
 - **Content version / platform folder** — appended to the CDN URL; empty = `Application.version` /
   auto-detected platform.
-- **Preload labels** — labels/addresses to predownload during initialization.
-- **Initialization flow** — `autoInitializeOnLaunch`, `checkCatalogUpdates`,
-  `predownloadPreloadContent`, plus `verboseLogging`.
+- **Preload** — `preloadLabels` (labels/addresses to predownload), `predownloadPreloadContent`
+  (on/off switch for the step), `downloadProgressMode` (`Union` = one dedup'd operation across every
+  label; `PerLabel` = labels download sequentially, populating `DownloadProgress.Labels` /
+  `CurrentLabel` for a per-label progress UI).
+- **Initialization flow** — `autoInitializeOnLaunch`, `checkCatalogUpdates`.
+- **Diagnostics** — `verboseLogging`.
 
 ```csharp
 // Point the same build at a different backend before initializing:
@@ -343,8 +346,9 @@ await SceneLoader.UnloadAsync("Hud", heavyUnload: true); // opt in to UnloadUnus
 - **Build Content Update** — build a content update from the previous content state.
 
 A `BundleSizeManifestBuilder` also runs automatically after every content build, writing
-`ServerData/{buildTarget}_BundleSize.json` (bundle name + size) so a remote-update flow can
-estimate the total download before fetching bundles.
+`ServerData/{buildTarget}_BuildReport.json` (bundle name + size + total) — a build-diagnostics
+report (CI size gates, tracking size growth across builds), not part of the runtime download
+flow (that sizes content on-device via `Addressables.GetDownloadSizeAsync`).
 
 ## Build from CLI
 
@@ -360,7 +364,7 @@ Pass `-aaProfile <ProfileName>` to switch the active Addressables profile before
 
 Open **Window > Package Manager**, select *KidzDev Addressables Toolkit*, then import **Demo** from the **Samples** tab. It's a ready-to-run scene plus the assets it needs:
 
-- `Demo.unity` — open it, mark `demo-prefab` and `demo-sprite` addressable (right-click → **Addressables Toolkit > Mark Addressable (address = name)**), then press Play. The on-screen panel (`AddressablesToolkitFullDemo`) drives the high-level flow: `AddressablesService.InitializeAsync` from the bundled settings asset, then load/instantiate/pool through a GameObject-bound `AssetScope` that auto-releases on destroy.
+- `FullDemo.unity` — open it, mark `demo-prefab` and `demo-sprite` addressable (right-click → **Addressables Toolkit > Mark Addressable (address = name)**), then press Play. The on-screen panel (`AddressablesToolkitFullDemo`) drives the high-level flow: `AddressablesService.InitializeAsync` from the bundled settings asset, then load/instantiate/pool through a GameObject-bound `AssetScope` that auto-releases on destroy.
 - `AddressablesToolkitDemo` — the low-level tools (`AssetLoader`, `AddressablePool`, `ContentDownloader`, `RemoteContentUpdater`) used directly.
 
 ## Authorship

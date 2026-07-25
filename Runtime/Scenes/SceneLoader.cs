@@ -14,10 +14,9 @@ namespace KidzDev.Unity.AddressablesToolkit
     /// Addressable scene load/unload with additive-scene tracking.
     /// </summary>
     /// <remarks>
-    /// Unlike the drx reference, this does <b>not</b> force
-    /// <c>Resources.UnloadUnusedAssets()</c> + <c>GC.Collect()</c> on every unload (a
-    /// main-thread hitch). Pass <paramref name="heavyUnload"/>:true to opt in for large
-    /// scene swaps where reclaiming memory is worth the stall.
+    /// This does <b>not</b> force <c>Resources.UnloadUnusedAssets()</c> + <c>GC.Collect()</c>
+    /// on every unload (a main-thread hitch). Pass <paramref name="heavyUnload"/>:true to opt
+    /// in for large scene swaps where reclaiming memory is worth the stall.
     /// </remarks>
     public static class SceneLoader
     {

@@ -60,10 +60,10 @@ namespace KidzDev.Unity.AddressablesToolkit.Editor
 
         /// <summary>
         /// Flags an unguarded <c>using UnityEditor;</c> inside a <b>player</b> (runtime)
-        /// assembly — the High-severity bug both reference systems shipped (drx#1 /
-        /// myworld#8). <c>UnityEditor</c> does not exist in player builds, so an
-        /// unguarded directive is dead at best and a player-build compile error at worst.
-        /// Unity package assemblies are skipped (not actionable from this project).
+        /// assembly — a shipped-bug-class this catches early. <c>UnityEditor</c> does not
+        /// exist in player builds, so an unguarded directive is dead at best and a
+        /// player-build compile error at worst. Unity package assemblies are skipped
+        /// (not actionable from this project).
         /// </summary>
         [MenuItem("Tools/Addressables Toolkit/Validate Runtime Editor Usage", false, 2001)]
         public static void ValidateRuntimeEditorUsage()

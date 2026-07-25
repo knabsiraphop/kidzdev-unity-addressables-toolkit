@@ -6,7 +6,7 @@ A ready-to-run sample. Open the scene, mark the four assets addressable, press *
 
 | Asset | Purpose |
 | --- | --- |
-| `Demo.unity` | The demo scene — an orthographic camera, the `AddressablesToolkitFullDemo` driver, and a preview of `demo-prefab`. |
+| `FullDemo.unity` | The demo scene — an orthographic camera, the `AddressablesToolkitFullDemo` driver, and a preview of `demo-prefab`. |
 | `demo-prefab.prefab` | A `SpriteRenderer` prefab (uses `demo-sprite`). Instantiated / pooled at runtime. |
 | `demo-sprite.png` | A sprite loaded by key at runtime. |
 | `demo-scene.unity` | A tiny additive scene (a lit cube marker, no camera) the **Scenes** section loads/unloads. |
@@ -29,9 +29,14 @@ A package sample can't ship Addressables group entries — those live in **your*
      `demo-atlas[icon]` / `demo-atlas[icon_missing]` via the Addressables sub-object convention, so
      marking the single sheet addressable is all that's needed.
    Without these, the matching sections just log a "not found" outcome instead of loading anything.
-2. Open **`Demo.unity`** and press **Play**.
+2. Open **`FullDemo.unity`** and press **Play**.
 
 The settings asset is already under a `Resources` folder, so no extra setup is needed for Local content.
+
+> **Remote content caveat:** the **1 · Service**, **8 · Remote**, and **8b · Per-label progress**
+> sections were exercised against a **Local** content source only — the catalog-update / predownload /
+> per-label-progress flow has not been verified against a real production CDN. Point `contentSource`
+> at **Remote** with your own CDN and test end-to-end before relying on it.
 
 The scene's `AddressablesToolkitFullDemo` already has its **`prefabReference`** and **`componentReference`**
 fields pre-wired to `demo-prefab`, so the AssetReference paths (section 2) and the
@@ -65,8 +70,13 @@ on-screen log. Sections:
   `LoadOrFallbackAsync`, `Release`.
 - **7 · SceneLoader** — additive `LoadAsync` / `IsAdditiveLoaded` / `UnloadAsync`.
 - **8 · Remote** — `ContentDownloader` (single + multi-key size/download, clear cache),
-  `CatalogUpdater` (check + clear-for-resume), `RemoteContentUpdater.RunAsync`, and `AddressableCdn`
-  install/uninstall.
+  `CatalogUpdater` (check + clear-for-resume), `RemoteContentUpdater.RunAsync` (both the default
+  union flow and `perLabelProgress: true`), and `AddressableCdn` install/uninstall.
+- **8b · Per-label progress** — shown after running `RunAsync (per-label)`. An aggregate bar
+  (deduped total across every label), a current-label bar (resets as `RemoteContentUpdater` moves
+  from one label to the next), and a status line per label (`Pending` / `Downloading` / `Complete`)
+  with its own downloaded/total/percent — all from the one richer `DownloadProgress.Labels` /
+  `.CurrentLabel` / `.BytesPerSecond` payload that mode reports.
 
 The asset operations gate on the service being **Ready**, so press **Initialize** first. Sprite-atlas,
 scene, and remote calls need matching content in your groups — without it they fail gracefully and log

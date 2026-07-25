@@ -6,10 +6,10 @@ namespace KidzDev.Unity.AddressablesToolkit
 {
     /// <summary>
     /// Loads individual sprites packed in a SpriteAtlas using the addressable-key
-    /// convention shared by both reference systems: <c>"{atlasKey}[{spriteName}]"</c>.
+    /// convention <c>"{atlasKey}[{spriteName}]"</c>.
     /// Sprites are ref-counted through <see cref="AssetLoader"/>, and an optional
     /// fallback renders a placeholder when a sprite is missing (a deliberate UX safety
-    /// net, like drx's <c>spr_icon_missing</c>).
+    /// net, e.g. a <c>spr_icon_missing</c> asset).
     /// </summary>
     public static class SpriteAtlasLoader
     {
