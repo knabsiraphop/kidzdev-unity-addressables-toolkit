@@ -1,6 +1,6 @@
 {
   "name": "com.kidzdev.unity.addressables-toolkit",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "displayName": "KidzDev Unity Addressables Toolkit",
   "description": "Utilities for working with Unity Addressables.",
   "unity": "6000.0",

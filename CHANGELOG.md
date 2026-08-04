@@ -5,6 +5,15 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2026-08-04
+
+### Added
+
+- **Clear Cached Content** menu item (`Tools > Addressables Toolkit > Clear Cached Content`) —
+  clears cached bundles for the active settings' preload keys via `ContentDownloader.ClearCacheAsync`,
+  forcing a full re-download of preload content on the next play session. Play-mode only (menu item
+  disabled otherwise), logs a per-key cleared/failed summary. Dev convenience, no production impact.
+
 ## [1.6.0] - 2026-08-04
 
 ### Added
