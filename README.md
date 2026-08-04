@@ -341,9 +341,13 @@ await SceneLoader.UnloadAsync("Hud", heavyUnload: true); // opt in to UnloadUnus
 - **Validate Addressables** — scan entries for duplicate addresses and missing assets.
 - **Validate Runtime Editor Usage** — flag any unguarded `using UnityEditor;` in a player
   (runtime) assembly — the High-severity bug both reference systems shipped.
-- **Build Content** — build Addressables player content.
-- **Clean Content** — clean built player content.
-- **Build Content Update** — build a content update from the previous content state.
+- **Build Addressables...** — guided build window: pick Local/Remote, check every group's
+  schema against an `AddressablesGroupSchemaBaseline` asset (drift shown right in the window,
+  not just the Console), then Build / Update Build / Clear Build / Open Build Folder. Checking
+  is a recommendation, not a gate — the buttons stay clickable either way. While building, the
+  window forces each group's `BundleNaming` and Build & Load Paths to match the selected mode,
+  then restores them afterward; nothing is left permanently changed and it never uploads or
+  publishes to a CDN.
 
 A `BundleSizeManifestBuilder` also runs automatically after every content build, writing
 `ServerData/{buildTarget}_BuildReport.json` (bundle name + size + total) — a build-diagnostics
