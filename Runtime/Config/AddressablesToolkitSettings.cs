@@ -148,6 +148,33 @@ namespace KidzDev.Unity.AddressablesToolkit
         /// <summary>Force a specific settings instance (tests, custom loaders). Pass null to reset.</summary>
         public static void OverrideInstance(AddressablesToolkitSettings settings) => _instance = settings;
 
+        // --- Editor-only drift reminder ---------------------------------------
+
+        private ContentSource _lastSeenContentSource;
+        private bool _lastSeenContentSourceInitialized;
+
+        private void OnEnable()
+        {
+            _lastSeenContentSource = contentSource;
+            _lastSeenContentSourceInitialized = true;
+        }
+
+        private void OnValidate()
+        {
+            if (!_lastSeenContentSourceInitialized)
+            {
+                _lastSeenContentSource = contentSource;
+                _lastSeenContentSourceInitialized = true;
+                return;
+            }
+
+            if (contentSource == _lastSeenContentSource) return;
+
+            _lastSeenContentSource = contentSource;
+            Debug.LogWarning("[AddressablesToolkit] contentSource changed — open " +
+                "Tools > Addressables Toolkit > Build Addressables... and run Check Group Schemas.");
+        }
+
         /// <summary>Clear the cached instance and environment override (play-mode restarts without domain reload).</summary>
         internal static void ResetRuntimeStatics()
         {
