@@ -5,6 +5,49 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-08-04
+
+### Added
+
+- **Build Addressables window** (`Tools > Addressables Toolkit > Build Addressables...`) —
+  replaces the old direct `Build Content` / `Build Content Update` / `Clean Content` menu items
+  with a guided flow: pick `Local`/`Remote`, run **Check Group Schemas** to see drift against the
+  project's schema baseline (and a preview of what will be force-applied for the build), then
+  **Build Content** / **Update Build** / **Clear Build** / **Open Build Folder**. All actions stay
+  clickable regardless of the check — the check is a recommendation, never a gate. Reports a
+  structured build outcome (success/duration/output path) and lists every file created/updated by
+  the build. Never performs any CDN upload/publish step.
+- `AddressablesBuildOverrideScope` — scopes a build to the selected Local/Remote mode: switches
+  the active Addressables profile to one named `"Local"`/`"Remote"` if it exists, forces
+  `AddressablesToolkitSettings.contentSource` and every group's `BundleNaming` and Build/Load
+  Paths (`Local.BuildPath`/`Local.LoadPath` or `Remote.BuildPath`/`Remote.LoadPath`) to match, then
+  restores all four on `Dispose` — nothing from using the window is left permanently changed.
+- **Group-schema baseline + validator** — `AddressablesGroupSchemaBaseline` (`ScriptableObject`,
+  create via `Assets > Create > KidzDev > Addressables Toolkit > Group Schema Baseline`) records
+  two known-good `SchemaDefaults` snapshots (`LocalDefaults` / `RemoteDefaults`: bundle
+  compression, asset bundle CRC mode, cache-clear behavior, include-in-build, use-asset-bundle-
+  cache, and content-update "prevent updates"). `AddressablesGroupSchemaValidator` warns on any
+  group whose schema field matches neither baseline — read-only, never mutates a group. A custom
+  Inspector (`AddressablesGroupSchemaBaselineEditor`) draws the baseline's checked vs. build-time-
+  forced (`BundleNaming`) fields separately, matching the real Group Inspector's raw enum labels.
+- `AddressablesToolkitSettings` now logs an Editor-only warning when `contentSource` changes in
+  the Inspector, reminding you to run **Check Group Schemas** before the next build.
+- `AddressablesBuilder.BuildContentCore()` (internal) returns a structured `BuildContentOutcome`
+  (`Success`, `Error`, `Duration`, `OutputPath`, `CreatedFiles`) and always builds through the
+  `BuildScriptPackedMode` data builder explicitly (restoring the original active data builder
+  index afterward) instead of relying on whatever was last selected in the Addressables Groups
+  window.
+- `AddressablesBuilder.ApplyProfileByName` / `ProfileExists` (internal) — extracted profile-switch
+  helpers shared by the CLI `-aaProfile` arg path and the new build window's profile override.
+
+### Changed
+
+- `Tools > Addressables Toolkit > Build Content` / `Clean Content` / `Build Content Update` menu
+  items are removed in favor of the single `Build Addressables...` window above. The underlying
+  `AddressablesBuilder.BuildContent()` / `CleanContent()` / `BuildContentUpdate()` static methods
+  are unchanged and still callable from CI via `-executeMethod`.
+- A successful build's log now also lists every file created/updated by that build.
+
 ## [1.5.1] - 2026-07-25
 
 ### Fixed
